@@ -984,78 +984,78 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
             </div>
 
             {/* Карточки KPI */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {/* Общий доход */}
-              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">💰 Общий доход</p>
-                <p className="text-xl font-black text-[#0D6B60]">
+              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
+                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">💰 Общий доход</p>
+                <p className="text-base sm:text-xl font-black text-[#0D6B60] truncate">
                   {history
                     .filter(o => !['Отменено'].includes(o.status))
                     .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10.5px] text-[#A09A92]">Брони + Кухня</p>
+                <p className="text-[10px] text-[#A09A92] truncate">Брони + Кухня</p>
               </div>
 
               {/* Доход с номеров */}
-              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">🏨 Выручка номеров</p>
-                <p className="text-xl font-black text-[#0F0F0F]">
+              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
+                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🏨 Выручка номеров</p>
+                <p className="text-base sm:text-xl font-black text-[#0F0F0F] truncate">
                   {history
                     .filter(o => o.type === 'booking' && !['Отменено'].includes(o.status))
                     .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10.5px] text-[#A09A92]">
+                <p className="text-[10px] text-[#A09A92] truncate">
                   {history.filter(o => o.type === 'booking' && !['Отменено'].includes(o.status)).length} броней
                 </p>
               </div>
 
               {/* Доход с кухни */}
-              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">🍕 Выручка кухни</p>
-                <p className="text-xl font-black text-amber-600">
+              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
+                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🍕 Выручка кухни</p>
+                <p className="text-base sm:text-xl font-black text-amber-600 truncate">
                   {history
                     .filter(o => o.type === 'food' && !['Отменено'].includes(o.status))
                     .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10.5px] text-[#A09A92]">
+                <p className="text-[10px] text-[#A09A92] truncate">
                   {history.filter(o => o.type === 'food' && !['Отменено'].includes(o.status)).length} заказов
                 </p>
               </div>
 
               {/* Запросов в номер */}
-              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">🛎️ Запросов в номер</p>
-                <p className="text-xl font-black text-purple-700">
+              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
+                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🛎️ Запросы в номер</p>
+                <p className="text-base sm:text-xl font-black text-purple-700 truncate">
                   {history.filter(o => o.type === 'request' || o.id?.startsWith('RQ-')).length}
                 </p>
-                <p className="text-[10.5px] text-[#A09A92]">Сервис & обслуживание</p>
+                <p className="text-[10px] text-[#A09A92] truncate">Обслуживание</p>
               </div>
             </div>
 
             {/* Детализация по статусам */}
-            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-3.5 space-y-3 shadow-sm">
               <h4 className="font-bold text-[13px] text-[#0F0F0F] flex items-center justify-between">
-                <span>📈 Статусы всех операционных заявок</span>
+                <span>📈 Статусы заявок</span>
                 <span className="text-[11px] font-normal text-[#6B7280]">Всего: {history.length}</span>
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
-                  { label: 'Подтверждено / Заселён', statusArr: ['Подтверждено', 'Заселён'], color: 'bg-green-50 text-green-700 border-green-200' },
-                  { label: 'В работе / Готовится', statusArr: ['В работе', 'Готовится', 'Принят', 'Ожидает'], color: 'bg-amber-50 text-amber-700 border-amber-200' },
-                  { label: 'Выполнено / Выехал', statusArr: ['Выполнено', 'Выехал'], color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                  { label: 'Подтверждено', statusArr: ['Подтверждено', 'Заселён'], color: 'bg-green-50 text-green-700 border-green-200' },
+                  { label: 'В работе', statusArr: ['В работе', 'Готовится', 'Принят', 'Ожидает'], color: 'bg-amber-50 text-amber-700 border-amber-200' },
+                  { label: 'Выполнено', statusArr: ['Выполнено', 'Выехал'], color: 'bg-blue-50 text-blue-700 border-blue-200' },
                   { label: 'Отменено', statusArr: ['Отменено'], color: 'bg-red-50 text-red-700 border-red-200' },
                 ].map(st => {
                   const count = history.filter(o => st.statusArr.includes(o.status)).length;
                   const percent = history.length > 0 ? Math.round((count / history.length) * 100) : 0;
                   return (
-                    <div key={st.label} className={`p-3 rounded-xl border ${st.color} space-y-1`}>
-                      <p className="text-[10px] uppercase font-bold tracking-wider">{st.label}</p>
+                    <div key={st.label} className={`p-2.5 rounded-xl border ${st.color} space-y-1 min-w-0`}>
+                      <p className="text-[9.5px] uppercase font-bold tracking-wider leading-tight truncate">{st.label}</p>
                       <div className="flex items-baseline justify-between">
-                        <p className="text-lg font-black">{count}</p>
-                        <p className="text-[11px] font-bold opacity-80">{percent}%</p>
+                        <p className="text-base font-black">{count}</p>
+                        <p className="text-[10.5px] font-bold opacity-80">{percent}%</p>
                       </div>
                     </div>
                   );
@@ -1064,18 +1064,18 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
             </div>
 
             {/* Таблица последних финансовых операций */}
-            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-3.5 space-y-3 shadow-sm">
               <h4 className="font-bold text-[13px] text-[#0F0F0F]">📑 История финансовых операций ({history.length})</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[12px] border-collapse">
+              <div className="overflow-x-auto -mx-1 px-1">
+                <table className="w-full text-left text-[12px] border-collapse min-w-[500px]">
                   <thead>
-                    <tr className="border-b border-[#EDE9E3] text-[#6B7280] font-semibold text-[11px] uppercase tracking-wider">
-                      <th className="py-2.5 px-2">Код</th>
-                      <th className="py-2.5 px-2">Тип</th>
-                      <th className="py-2.5 px-2">Описание</th>
-                      <th className="py-2.5 px-2">Гость / Номер</th>
-                      <th className="py-2.5 px-2">Сумма</th>
-                      <th className="py-2.5 px-2">Статус</th>
+                    <tr className="border-b border-[#EDE9E3] text-[#6B7280] font-semibold text-[10.5px] uppercase tracking-wider whitespace-nowrap">
+                      <th className="py-2 px-2">Код</th>
+                      <th className="py-2 px-2">Тип</th>
+                      <th className="py-2 px-2">Описание</th>
+                      <th className="py-2 px-2">Гость / Номер</th>
+                      <th className="py-2 px-2">Сумма</th>
+                      <th className="py-2 px-2">Статус</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F6F4F1]">
@@ -1085,9 +1085,9 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                       </tr>
                     ) : (
                       history.slice(0, 30).map(o => (
-                        <tr key={o.id} className="hover:bg-[#FAFAF8] transition-colors">
-                          <td className="py-2.5 px-2 font-mono font-bold text-[11px] text-[#0F0F0F]">{o.id}</td>
-                          <td className="py-2.5 px-2">
+                        <tr key={o.id} className="hover:bg-[#FAFAF8] transition-colors whitespace-nowrap">
+                          <td className="py-2 px-2 font-mono font-bold text-[11px] text-[#0F0F0F]">{o.id}</td>
+                          <td className="py-2 px-2">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               o.type === 'booking' ? 'bg-teal-50 text-teal-700 border border-teal-200' :
                               o.type === 'food' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
@@ -1096,12 +1096,12 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                               {o.type === 'booking' ? '🏨 Бронь' : o.type === 'food' ? '🍕 Еда' : '🛎️ Запрос'}
                             </span>
                           </td>
-                          <td className="py-2.5 px-2 font-medium max-w-[200px] truncate text-[#0F0F0F]">{o.title}</td>
-                          <td className="py-2.5 px-2 text-[#6B7280]">
+                          <td className="py-2 px-2 font-medium max-w-[160px] truncate text-[#0F0F0F]">{o.title}</td>
+                          <td className="py-2 px-2 text-[#6B7280]">
                             {o.guest || '—'} {o.roomNo ? `(№ ${o.roomNo})` : ''}
                           </td>
-                          <td className="py-2.5 px-2 font-bold text-[#0D6B60]">{o.price || '0 сом'}</td>
-                          <td className="py-2.5 px-2"><StatusBadge status={o.status} /></td>
+                          <td className="py-2 px-2 font-bold text-[#0D6B60]">{o.price || '0 сом'}</td>
+                          <td className="py-2 px-2"><StatusBadge status={o.status} /></td>
                         </tr>
                       ))
                     )}
