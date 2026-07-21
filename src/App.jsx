@@ -1612,7 +1612,7 @@ export default function App() {
         <form onSubmit={submitName} className="space-y-4">
           <div className="space-y-2">
             <label className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider">Ваше имя</label>
-            <input className={`input-soft ${nameError ? 'error' : ''}`} placeholder="Например: Тургунбек"
+            <input className={`input-soft ${nameError ? 'error' : ''}`} placeholder="Например: Максат"
               value={inputName} onChange={e => { setInputName(e.target.value); setNameError(''); }} autoFocus />
             {nameError && <div className="flex items-center gap-1.5 text-[12px] text-red-500 font-medium"><AlertCircle size={14} />{nameError}</div>}
           </div>
