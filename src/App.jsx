@@ -1796,10 +1796,13 @@ export default function App() {
   const ACTIVE_STATUSES = ['\u041fодтверждено', '\u0417аселён', '\u041fродлён'];
 
   const isRoomOccupied = (room) => {
-    return history.some(o =>
+    if (!room) return false;
+    return (history || []).some(o =>
+      o &&
       o.type === 'booking' &&
       ACTIVE_STATUSES.includes(o.status) &&
       (o.roomData?.id === room.id || o.roomData?.name === room.name) &&
+      o.checkIn && o.checkOut &&
       o.checkIn <= todayStr &&
       o.checkOut > todayStr
     );
@@ -1807,28 +1810,35 @@ export default function App() {
 
   // Получить даты занятости номера (с учётом продлений и цепочки броней)
   const getRoomOccupancy = (room) => {
-    const currentBookings = history.filter(o =>
+    if (!room) return null;
+    const currentBookings = (history || []).filter(o =>
+      o &&
       o.type === 'booking' &&
       ACTIVE_STATUSES.includes(o.status) &&
       (o.roomData?.id === room.id || o.roomData?.name === room.name) &&
+      o.checkIn && o.checkOut &&
       o.checkIn <= todayStr &&
       o.checkOut > todayStr
     );
 
     if (currentBookings.length === 0) return null;
 
-    currentBookings.sort((a, b) => b.checkOut.localeCompare(a.checkOut));
+    currentBookings.sort((a, b) => String(b.checkOut || '').localeCompare(String(a.checkOut || '')));
     let mainBooking = { ...currentBookings[0] };
 
     // Проверяем цепочку последующих подтвержденных броней для этого же номера
-    let maxCheckOut = mainBooking.checkOut;
+    let maxCheckOut = mainBooking.checkOut || todayStr;
     let foundMore = true;
-    while (foundMore) {
+    let safeguard = 0;
+    while (foundMore && safeguard < 20) {
+      safeguard++;
       foundMore = false;
-      const nextBooking = history.find(o =>
+      const nextBooking = (history || []).find(o =>
+        o &&
         o.type === 'booking' &&
         ACTIVE_STATUSES.includes(o.status) &&
         (o.roomData?.id === room.id || o.roomData?.name === room.name) &&
+        o.checkIn && o.checkOut &&
         o.checkIn <= maxCheckOut &&
         o.checkOut > maxCheckOut
       );
