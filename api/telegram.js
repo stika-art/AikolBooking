@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const { id: queryId, data, message } = body.callback_query;
     if (!data) return res.status(200).json({ ok: true });
 
-    // Формат: action_orderId (например: confirm_BK-1234, work_RQ-5678, done_OD-9012, cancel_BK-1234)
+    // Формат callback_data: action_orderId (например: confirm_BK-219, work_OD-1234, done_RQ-5678, cancel_BK-219)
     const parts = data.split('_');
     const action = parts[0];
     const orderId = parts.slice(1).join('_');
@@ -46,8 +46,9 @@ export default async function handler(req, res) {
       statusLabel = '❌ ОТМЕНЕНО В TELEGRAM';
     }
 
+    // Рабочий ключ Supabase (соответствует App.jsx)
     const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3B3ZXF4Znd6cHciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NDQ2MjQ0MCwiZXhwIjoyMTAwMDM4NDQwfQ.Uyso9LTS3qFdFEHQfQh-FHoVExYNMqslu4OeR3B_a2s';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3Nwd2VxeGZ3enB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NjI0NDAsImV4cCI6MjEwMDAzODQ0MH0.Uyso9LTS3qFdFEHQfQh-FHoVExYNMqslu4OeR3B_a2s';
 
     // 1. Получаем токен бота из Supabase
     let botToken = null;
@@ -62,9 +63,15 @@ export default async function handler(req, res) {
       botToken = tgRows?.[0]?.payload?.token;
     } catch(e) {}
 
-    // 2. Отправляем МГНОВЕННЫЙ ответ в Telegram (показывает всплывающее окно)
-    if (botToken && queryId) {
-      await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+    // Fallback: если в базе нет tg_config, берем из переменной или сообщения
+    if (!botToken && process.env.TELEGRAM_BOT_TOKEN) {
+      botToken = process.env.TELEGRAM_BOT_TOKEN;
+    }
+
+    // 2. Отправляем МГНОВЕННЫЙ отклик Telegram (показывает всплывающее окно)
+    if (queryId) {
+      const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
+      await fetch(`https://api.telegram.org/bot${activeToken}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,10 +113,11 @@ export default async function handler(req, res) {
       }
 
       // 5. Редактируем сообщение в самом Telegram-чате
-      if (botToken && message) {
+      const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
+      if (activeToken && message) {
         const originalText = message.text || '';
         const updatedMessageText = originalText + `\n\n📌 <b>СТАТУС: ${statusLabel}</b>`;
-        await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+        await fetch(`https://api.telegram.org/bot${activeToken}/editMessageText`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
