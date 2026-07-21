@@ -2404,12 +2404,12 @@ export default function App() {
         <div className="bg-white border-b border-[#EDE9E3] px-5 py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#0D6B60] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-              {guestName[0]?.toUpperCase()}
+              {(guestName && guestName.length > 0 ? guestName[0] : 'Г').toUpperCase()}
             </div>
             <div>
-              <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight">{guestName}</p>
+              <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight">{guestName || 'Гость'}</p>
               <p className="text-[11px] text-[#6B7280] flex items-center gap-1">
-                <Phone size={10} className="text-[#0D6B60]" /> {guestPhone}
+                <Phone size={10} className="text-[#0D6B60]" /> {guestPhone || 'Не указан'}
               </p>
             </div>
           </div>
@@ -2780,22 +2780,22 @@ export default function App() {
           );})}
 
           {/* ── ПУБЛИЧНЫЙ БЛОК: ОТЗЫВЫ НАШИХ ГОСТЕЙ ── */}
-          {reviewsList.length > 0 && (
+          {reviewsList && reviewsList.length > 0 && (
             <div className="pt-4 space-y-3 animate-up">
               <div className="text-center py-2">
                 <span className="text-[11px] font-semibold text-[#B8963A] uppercase tracking-widest flex items-center justify-center gap-1.5">
                   <Star size={12} fill="#B8963A" className="text-[#B8963A]" />
-                  Отзывы наших гостей ({(reviewsList.reduce((a, r) => a + (r.stars || 5), 0) / reviewsList.length).toFixed(1)} / 5.0 ⭐)
+                  Отзывы наших гостей ({(reviewsList.reduce((a, r) => a + (parseInt(r?.stars) || 5), 0) / (reviewsList.length || 1)).toFixed(1)} / 5.0 ⭐)
                 </span>
                 <div className="mt-1.5 mx-auto w-10 h-[2px] rounded-full bg-[#B8963A]" />
               </div>
 
               <div className="space-y-3">
                 {reviewsList.slice(0, 10).map(rev => (
-                  <div key={rev.id} className="bg-white border border-[#EDE9E3] rounded-[18px] p-4 space-y-2 shadow-sm">
+                  <div key={rev.id || Math.random()} className="bg-white border border-[#EDE9E3] rounded-[18px] p-4 space-y-2 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest}</p>
+                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest || 'Гость'}</p>
                         {rev.roomNo && (
                           <p className="text-[10.5px] text-[#0D6B60] font-semibold">
                             Проживал(а) в номере № {rev.roomNo}
@@ -2803,7 +2803,7 @@ export default function App() {
                         )}
                       </div>
                       <div className="text-[12px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        {'⭐'.repeat(rev.stars || 5)} <span className="text-[10px] text-[#0F0F0F]">({rev.stars}/5)</span>
+                        {'⭐'.repeat(Math.max(1, Math.min(5, parseInt(rev?.stars) || 5)))} <span className="text-[10px] text-[#0F0F0F]">({parseInt(rev?.stars) || 5}/5)</span>
                       </div>
                     </div>
                     {rev.comment && (
