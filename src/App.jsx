@@ -600,6 +600,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
             {id:'edit_rooms',label:'⚙️ Номера'},
             {id:'edit_menu',label:'🍕 Меню'},
             {id:'reports',  label:'📊 Отчётность'},
+            {id:'reviews',  label:`⭐ Отзывы (${reviewsList.length})`},
             {id:'settings', label:'🔒 Настройки & Telegram'},
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)}
@@ -1154,6 +1155,72 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── ВКЛАДКА: ОТЗЫВЫ ГОСТЕЙ И МОДЕРАЦИЯ ── */}
+        {filter === 'reviews' && (
+          <div className="px-4 py-4 space-y-4 animate-up">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold text-[#0F0F0F]">⭐ Отзывы и оценки гостей</h3>
+                <p className="text-[12px] text-[#6B7280]">Модерация отзывов и удаление неадекватных комментариев</p>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl text-[12px] font-bold text-amber-800 flex items-center gap-1.5 shadow-sm">
+                <span>⭐</span>
+                <span>
+                  {reviewsList.length > 0
+                    ? (reviewsList.reduce((a, r) => a + (r.stars || 5), 0) / reviewsList.length).toFixed(1)
+                    : '5.0'} / 5.0
+                </span>
+                <span className="text-[#6B7280] font-normal">({reviewsList.length})</span>
+              </div>
+            </div>
+
+            {reviewsList.length === 0 ? (
+              <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-8 text-center space-y-2 shadow-sm">
+                <Star size={32} className="text-[#D8D3CC] mx-auto" />
+                <p className="text-[13px] text-[#A09A92] font-medium">Отзывов пока нет</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {reviewsList.map(rev => (
+                  <div key={rev.id} className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-2.5 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-[13.5px] text-[#0F0F0F]">{rev.guest}</p>
+                          {rev.roomNo && <span className="text-[10px] bg-[#E0F4F1] text-[#0D6B60] font-bold px-2 py-0.5 rounded">№ {rev.roomNo}</span>}
+                        </div>
+                        <p className="text-[11px] text-[#6B7280]">{rev.phone} · {rev.date}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-[12px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                          {'⭐'.repeat(rev.stars || 5)} <span className="text-[10.5px] text-[#0F0F0F]">({rev.stars}/5)</span>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Удалить этот отзыв из системы?')) return;
+                            const updated = reviewsList.filter(r => r.id !== rev.id);
+                            setReviewsList(updated);
+                            try { localStorage.setItem('ak_reviews', JSON.stringify(updated)); } catch(e){}
+                            try { await supabase.from('orders').delete().eq('id', rev.id); } catch(e){}
+                          }}
+                          className="p-1.5 border border-red-200 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                          title="Удалить нехороший отзыв">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    {rev.comment && (
+                      <p className="text-[12.5px] text-[#4B5563] bg-[#F6F4F1] p-3 rounded-[12px] leading-relaxed border border-[#E8E4DF]">
+                        "{rev.comment}"
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
