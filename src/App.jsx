@@ -2510,7 +2510,7 @@ export default function App() {
               ? myConfirmedBookings.map(b => ({
                   bookingId: b.id,
                   roomNo: b.roomNo,
-                  name: b.roomData?.name || b.title?.split('(')[0]?.trim() || 'Номер',
+                  name: b.roomData?.name || (b.title ? String(b.title).split('(')[0]?.trim() : null) || 'Номер',
                   size: b.roomData?.size || '32 м²',
                   cap: b.roomData?.cap || `${b.guests || 1} гостя`,
                   price: b.roomData?.price || b.price,
