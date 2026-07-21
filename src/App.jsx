@@ -953,39 +953,6 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
               </form>
             </div>
 
-            {/* Настройки Wi-Fi для гостей */}
-            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
-              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
-                <Wifi size={16} className="text-[#0D6B60]" /> Настройки Wi-Fi отеля
-              </h3>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                localStorage.setItem('ak_wifi_ssid', wifiSsid);
-                localStorage.setItem('ak_wifi_pass', wifiPass);
-                setWifiStatus('✅ Настройки Wi-Fi сохранены!');
-                setTimeout(() => setWifiStatus(''), 3000);
-              }} className="space-y-3 text-[12px]">
-                <div>
-                  <label className="font-semibold text-[#6B7280]">Имя сети Wi-Fi (SSID)</label>
-                  <input type="text" className="input-soft mt-1" required placeholder="Aikol_Guest_WiFi"
-                    value={wifiSsid} onChange={e => setWifiSsid(e.target.value)} />
-                </div>
-                <div>
-                  <label className="font-semibold text-[#6B7280]">Пароль от Wi-Fi</label>
-                  <input type="text" className="input-soft mt-1 font-mono" required placeholder="aikol2026"
-                    value={wifiPass} onChange={e => setWifiPass(e.target.value)} />
-                </div>
-                {wifiStatus && (
-                  <div className="text-[11px] p-2.5 rounded-lg border font-medium bg-green-50 text-green-700 border-green-200">
-                    {wifiStatus}
-                  </div>
-                )}
-                <button type="submit" className="btn-primary w-full py-2.5 text-[12px]">
-                  Сохранить Wi-Fi
-                </button>
-              </form>
-            </div>
-
             {/* Смена пароля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -2583,34 +2550,6 @@ export default function App() {
                         );
                       })()}
 
-                      {/* 📶 Блок Wi-Fi в номере */}
-                      <div className="bg-gradient-to-br from-[#0D6B60]/10 to-[#0D6B60]/5 border border-[#C7EBE6] rounded-[16px] p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-8 h-8 rounded-full bg-[#0D6B60] text-white flex items-center justify-center shadow-sm shrink-0">
-                              <Wifi size={16} />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-[11px] font-bold text-[#0F0F0F]">Wi-Fi в номере</p>
-                              <p className="text-[11px] text-[#0D6B60] font-bold truncate">{wifiSsid}</p>
-                            </div>
-                          </div>
-                          <button onClick={() => setShowWifiModal(true)}
-                            className="text-[10.5px] font-bold text-[#0D6B60] bg-white border border-[#C7EBE6] px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-[#F0FAF8] transition-all flex items-center gap-1 shrink-0">
-                            📱 QR-код
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(wifiPass);
-                            setWifiCopied(true);
-                            setTimeout(() => setWifiCopied(false), 2500);
-                          }}
-                          className="btn-primary w-full py-2 text-[11.5px] flex items-center justify-center gap-1.5">
-                          {wifiCopied ? '✅ Пароль скопирован!' : `📋 Скопировать пароль (${wifiPass})`}
-                        </button>
-                      </div>
-
                       <div className="divider" />
                       <div className="flex gap-2">
                         <button onClick={() => { setActiveRoom(rm); setModal('service'); }}
@@ -3001,35 +2940,6 @@ export default function App() {
                 </>
               );
             })()}
-          </div>
-        </div>
-      )}
-
-      {/* ── WI-FI QR MODAL ── */}
-      {showWifiModal && (
-        <div className="modal-backdrop animate-scale">
-          <div className="modal-box text-center space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-display font-bold text-lg text-[#0F0F0F] flex items-center gap-2">
-                <Wifi size={18} className="text-[#0D6B60]" /> Подключение к Wi-Fi
-              </h3>
-              <button onClick={() => setShowWifiModal(false)} className="text-[#6B7280] font-bold p-1">✕</button>
-            </div>
-            <div className="bg-[#F6F4F1] p-4 rounded-[16px] inline-block shadow-inner">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`WIFI:S:${wifiSsid};T:WPA;P:${wifiPass};;`)}`}
-                alt="Wi-Fi QR Code"
-                className="w-48 h-48 mx-auto rounded-lg shadow-md border border-white"
-              />
-            </div>
-            <div className="space-y-1.5 text-[12px] bg-[#F0FAF8] p-3 rounded-[12px] border border-[#C7EBE6]">
-              <p className="font-bold text-[#0F0F0F]">Сеть: <span className="text-[#0D6B60] font-black">{wifiSsid}</span></p>
-              <p className="font-semibold text-[#6B7280]">Пароль: <span className="font-mono text-[#0F0F0F] font-bold">{wifiPass}</span></p>
-              <p className="text-[10.5px] text-[#A09A92] pt-0.5">Наведите камеру смартфона на QR-код для автоматического входа в Wi-Fi</p>
-            </div>
-            <button onClick={() => setShowWifiModal(false)} className="btn-outline w-full py-2.5 text-[13px]">
-              Закрыть
-            </button>
           </div>
         </div>
       )}
