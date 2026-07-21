@@ -2778,6 +2778,45 @@ export default function App() {
               </div>
             </div>
           );})}
+
+          {/* ── ПУБЛИЧНЫЙ БЛОК: ОТЗЫВЫ НАШИХ ГОСТЕЙ ── */}
+          {reviewsList.length > 0 && (
+            <div className="pt-4 space-y-3 animate-up">
+              <div className="text-center py-2">
+                <span className="text-[11px] font-semibold text-[#B8963A] uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  <Star size={12} fill="#B8963A" className="text-[#B8963A]" />
+                  Отзывы наших гостей ({(reviewsList.reduce((a, r) => a + (r.stars || 5), 0) / reviewsList.length).toFixed(1)} / 5.0 ⭐)
+                </span>
+                <div className="mt-1.5 mx-auto w-10 h-[2px] rounded-full bg-[#B8963A]" />
+              </div>
+
+              <div className="space-y-3">
+                {reviewsList.slice(0, 10).map(rev => (
+                  <div key={rev.id} className="bg-white border border-[#EDE9E3] rounded-[18px] p-4 space-y-2 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest}</p>
+                        {rev.roomNo && (
+                          <p className="text-[10.5px] text-[#0D6B60] font-semibold">
+                            Проживал(а) в номере № {rev.roomNo}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-[12px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                        {'⭐'.repeat(rev.stars || 5)} <span className="text-[10px] text-[#0F0F0F]">({rev.stars}/5)</span>
+                      </div>
+                    </div>
+                    {rev.comment && (
+                      <p className="text-[12.5px] text-[#4B5563] bg-[#F6F4F1] p-3 rounded-[12px] leading-relaxed border border-[#E8E4DF]">
+                        "{rev.comment}"
+                      </p>
+                    )}
+                    <p className="text-[10px] text-[#A09A92] text-right">{rev.date}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
