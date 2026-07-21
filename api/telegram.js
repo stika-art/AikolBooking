@@ -1,4 +1,13 @@
 export default async function handler(req, res) {
+  // Настройка CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(200).send('Aikol Telegram Webhook Endpoint Active');
   }
@@ -36,7 +45,7 @@ export default async function handler(req, res) {
 
     if (newStatus && orderId) {
       const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3B3ZXF4Znd6cHciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0MDIzMTYxOCwiZXhwIjoyMDU1ODA3NjE4fQ.B7_f02u1M9w5fGf9M7-W0t-J0hGkU1p1W2Y4Q7X8Z8M';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3B3ZXF4Znd6cHciLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NDQ2MjQ0MCwiZXhwIjoyMTAwMDM4NDQwfQ.Uyso9LTS3qFdFEHQfQh-FHoVExYNMqslu4OeR3B_a2s';
 
       // 1. Получаем текущий заказ из Supabase
       const getRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
@@ -83,7 +92,7 @@ export default async function handler(req, res) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             callback_query_id: queryId,
-            text: `Статус заказа ${orderId}: ${newStatus}`,
+            text: `Статус ${orderId} изменён: ${newStatus}`,
             show_alert: false
           })
         });

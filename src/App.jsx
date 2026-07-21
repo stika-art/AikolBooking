@@ -905,14 +905,20 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                     type="button"
                     onClick={async () => {
                       if (!tgToken) { setTgStatus('⚠️ Заполните Telegram Bot Token!'); return; }
-                      const webhookUrl = `${window.location.origin}/api/telegram`;
+                      let origin = window.location.origin;
+                      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+                        const customUrl = prompt('Введите ваш Vercel URL для Telegram Webhook (например: https://aikolbooking.vercel.app):');
+                        if (!customUrl) return;
+                        origin = customUrl.trim().replace(/\/$/, '');
+                      }
+                      const webhookUrl = `${origin}/api/telegram`;
                       try {
                         const res = await fetch(`https://api.telegram.org/bot${tgToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
                         const data = await res.json();
                         if (data.ok) {
-                          setTgStatus(`✅ Кнопки в Telegram подключены! Webhook: ${webhookUrl}`);
+                          setTgStatus(`✅ Кнопки в Telegram подключены!\nWebhook: ${webhookUrl}`);
                         } else {
-                          setTgStatus(`❌ Ошибка подключения: ${data.description}`);
+                          setTgStatus(`❌ Ошибка Telegram: ${data.description}`);
                         }
                       } catch (e) {
                         setTgStatus('❌ Ошибка сети при настройке Webhook');
