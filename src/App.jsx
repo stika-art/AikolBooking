@@ -2204,122 +2204,156 @@ export default function App() {
             </div>
           )}
 
-          {/* ── АКТИВНЫЙ НОМЕР (подтверждён) ── */}
-          {activeRoom && !pendingId && (
-            <div className="animate-up">
-              <div className="text-center py-2 mb-1">
-                <span className="text-[11px] font-semibold text-[#0D6B60] uppercase tracking-widest">Ваш номер</span>
-                <div className="mt-1.5 mx-auto w-8 h-[2px] rounded-full bg-[#0D6B60]" />
-              </div>
-              <div className="room-card border-[1.5px] border-[#0D6B60]/20 shadow-[0_4px_24px_rgba(13,107,96,0.1)]">
-                <div className="relative h-[160px] overflow-hidden">
-                  <img src={activeRoom.img} alt={activeRoom.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-3 left-3 bg-[#0D6B60] text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" /> Заселён
-                  </div>
-                  <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-                    <div>
-                      <p className="font-display text-white text-[17px] font-semibold leading-tight">{activeRoom.name}</p>
-                      <p className="text-white/70 text-[12px]">{activeRoom.size} · {activeRoom.cap}</p>
-                    </div>
-                    <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-[12px] px-3 py-2 text-center min-w-[56px]">
-                      <p className="text-white/70 text-[9px] font-semibold uppercase tracking-wider">Комната</p>
-                      <p className="text-white font-black text-[22px] leading-tight">{activeRoom.roomNo}</p>
-                    </div>
-                  </div>
+          {/* ── АКТИВНЫЕ НОМЕРА ГОСТЯ (подтверждённые) ── */}
+          {(() => {
+            const myConfirmedBookings = history.filter(o =>
+              o.type === 'booking' &&
+              ['Подтверждено', 'Заселён', 'Продлён'].includes(o.status) &&
+              (
+                (guestPhone && o.phone === guestPhone) ||
+                (guestName && o.guest === guestName) ||
+                (activeRoom && (o.id === activeRoom.bookingId || o.roomNo === activeRoom.roomNo))
+              )
+            );
+
+            const myActiveRoomsList = myConfirmedBookings.length > 0
+              ? myConfirmedBookings.map(b => ({
+                  bookingId: b.id,
+                  roomNo: b.roomNo,
+                  name: b.roomData?.name || b.title?.split('(')[0]?.trim() || 'Номер',
+                  size: b.roomData?.size || '32 м²',
+                  cap: b.roomData?.cap || `${b.guests || 1} гостя`,
+                  price: b.roomData?.price || b.price,
+                  img: b.roomData?.img || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=85',
+                  perks: b.roomData?.perks || ['Кровать King-size', 'Wi-Fi 100 Мбит/с'],
+                  checkIn: b.checkIn,
+                  checkOut: b.checkOut,
+                  status: b.status
+                }))
+              : (activeRoom ? [activeRoom] : []);
+
+            if (myActiveRoomsList.length === 0 || pendingId) return null;
+
+            return (
+              <div className="space-y-4 animate-up">
+                <div className="text-center py-2 mb-1">
+                  <span className="text-[11px] font-semibold text-[#0D6B60] uppercase tracking-widest">
+                    {myActiveRoomsList.length > 1 ? `Ваши номера (${myActiveRoomsList.length})` : 'Ваш номер'}
+                  </span>
+                  <div className="mt-1.5 mx-auto w-8 h-[2px] rounded-full bg-[#0D6B60]" />
                 </div>
-                <div className="p-4 space-y-3">
-                  {/* Даты */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
-                      <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Заезд</p>
-                      <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(activeRoom.checkIn)}</p>
-                    </div>
-                    <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
-                      <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Выезд</p>
-                      <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(activeRoom.checkOut)}</p>
-                    </div>
-                  </div>
-                  {nights(activeRoom.checkIn, activeRoom.checkOut) > 0 && (
-                    <p className="text-[11px] text-[#6B7280] text-center">
-                      {nights(activeRoom.checkIn, activeRoom.checkOut)} ноч. · {activeRoom.price} сом/ночь
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-1.5">
-                    {activeRoom.perks?.map(p => (
-                      <span key={p} className="chip flex items-center gap-1">{getPerkIcon(p)}{p}</span>
-                    ))}
-                  </div>
 
-                  {/* Минималистичный статус-бар активных блюд и запросов */}
-                  {(() => {
-                    const activeReqs = history.filter(o =>
-                      (o.roomNo === activeRoom.roomNo || o.roomNo === String(activeRoom.roomNo)) &&
-                      ['food', 'request'].includes(o.type) &&
-                      ['Принят', 'Ожидает', 'В работе', 'Готовится', 'Выполнено'].includes(o.status)
-                    );
-                    if (activeReqs.length === 0) return null;
-
-                    return (
-                      <div className="bg-[#F0FAF8] border border-[#C7EBE6] rounded-[14px] p-3 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-[#0D6B60] uppercase tracking-wider flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#0D6B60] animate-ping" />
-                            Активные заказы & запросы ({activeReqs.length})
-                          </span>
+                {myActiveRoomsList.map((rm, roomIdx) => (
+                  <div key={rm.bookingId || roomIdx} className="room-card border-[1.5px] border-[#0D6B60]/20 shadow-[0_4px_24px_rgba(13,107,96,0.1)]">
+                    <div className="relative h-[160px] overflow-hidden">
+                      <img src={rm.img} alt={rm.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute top-3 left-3 bg-[#0D6B60] text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" /> {rm.status || 'Заселён'}
+                      </div>
+                      <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+                        <div>
+                          <p className="font-display text-white text-[17px] font-semibold leading-tight">{rm.name}</p>
+                          <p className="text-white/70 text-[12px]">{rm.size} · {rm.cap}</p>
                         </div>
-                        {activeReqs.map(req => (
-                          <div key={req.id} className="bg-white rounded-[10px] p-2.5 border border-[#EDE9E3] space-y-2 text-[12px]">
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="font-bold text-[#0F0F0F] line-clamp-1 flex-1">{req.title}</span>
-                              <StatusBadge status={req.status} />
-                            </div>
-                            {/* Минималистичный трекер статуса */}
-                            <div className="pt-0.5 space-y-1">
-                              <div className="flex justify-between text-[9.5px] font-semibold">
-                                <span className={req.status === 'Принят' || req.status === 'Ожидает' ? 'text-amber-600 font-bold' : 'text-[#A09A92]'}>
-                                  📩 Отправлено
-                                </span>
-                                <span className={['В работе', 'Готовится'].includes(req.status) ? 'text-[#0D6B60] font-bold flex items-center gap-1' : 'text-[#A09A92]'}>
-                                  {['В работе', 'Готовится'].includes(req.status) && <span className="w-1.5 h-1.5 rounded-full bg-[#0D6B60] animate-pulse" />}
-                                  👀 Прочитано · В работе
-                                </span>
-                                <span className={req.status === 'Выполнено' ? 'text-green-600 font-bold' : 'text-[#A09A92]'}>
-                                  ✅ Готово
-                                </span>
-                              </div>
-                              <div className="w-full h-1.5 bg-[#EDE9E3] rounded-full overflow-hidden flex">
-                                <div className={`h-full transition-all duration-500 rounded-full ${
-                                  req.status === 'Выполнено'
-                                    ? 'w-full bg-green-500'
-                                    : ['В работе', 'Готовится'].includes(req.status)
-                                    ? 'w-2/3 bg-[#0D6B60]'
-                                    : 'w-1/3 bg-amber-500'
-                                }`} />
-                              </div>
-                            </div>
-                          </div>
+                        <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-[12px] px-3 py-2 text-center min-w-[56px]">
+                          <p className="text-white/70 text-[9px] font-semibold uppercase tracking-wider">Комната</p>
+                          <p className="text-white font-black text-[22px] leading-tight">{rm.roomNo}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {/* Даты */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
+                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Заезд</p>
+                          <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(rm.checkIn)}</p>
+                        </div>
+                        <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
+                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Выезд</p>
+                          <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(rm.checkOut)}</p>
+                        </div>
+                      </div>
+                      {nights(rm.checkIn, rm.checkOut) > 0 && (
+                        <p className="text-[11px] text-[#6B7280] text-center">
+                          {nights(rm.checkIn, rm.checkOut)} ноч. · {rm.price} сом/ночь
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1.5">
+                        {rm.perks?.map(p => (
+                          <span key={p} className="chip flex items-center gap-1">{getPerkIcon(p)}{p}</span>
                         ))}
                       </div>
-                    );
-                  })()}
 
-                  <div className="divider" />
-                  <div className="flex gap-2">
-                    <button onClick={() => setModal('service')}
-                      className="btn-primary flex-1 py-3 text-[13px] flex items-center justify-center gap-2">
-                      <Bell size={15} /> Запросы
-                    </button>
-                    <button onClick={() => { setExtendDate(activeRoom.checkOut); setModal('extend'); }}
-                      className="btn-outline flex-1 py-3 text-[13px] flex items-center justify-center gap-2 text-[#0D6B60] border-[#C7EBE6]">
-                      <CalendarPlus size={15} /> Продлить
-                    </button>
+                      {/* Минималистичный статус-бар активных блюд и запросов */}
+                      {(() => {
+                        const activeReqs = history.filter(o =>
+                          (o.roomNo === rm.roomNo || o.roomNo === String(rm.roomNo)) &&
+                          ['food', 'request'].includes(o.type) &&
+                          ['Принят', 'Ожидает', 'В работе', 'Готовится', 'Выполнено'].includes(o.status)
+                        );
+                        if (activeReqs.length === 0) return null;
+
+                        return (
+                          <div className="bg-[#F0FAF8] border border-[#C7EBE6] rounded-[14px] p-3 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-[#0D6B60] uppercase tracking-wider flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-[#0D6B60] animate-ping" />
+                                Активные заказы & запросы ({activeReqs.length})
+                              </span>
+                            </div>
+                            {activeReqs.map(req => (
+                              <div key={req.id} className="bg-white rounded-[10px] p-2.5 border border-[#EDE9E3] space-y-2 text-[12px]">
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="font-bold text-[#0F0F0F] line-clamp-1 flex-1">{req.title}</span>
+                                  <StatusBadge status={req.status} />
+                                </div>
+                                <div className="pt-0.5 space-y-1">
+                                  <div className="flex justify-between text-[9.5px] font-semibold">
+                                    <span className={req.status === 'Принят' || req.status === 'Ожидает' ? 'text-amber-600 font-bold' : 'text-[#A09A92]'}>
+                                      📩 Отправлено
+                                    </span>
+                                    <span className={['В работе', 'Готовится'].includes(req.status) ? 'text-[#0D6B60] font-bold flex items-center gap-1' : 'text-[#A09A92]'}>
+                                      {['В работе', 'Готовится'].includes(req.status) && <span className="w-1.5 h-1.5 rounded-full bg-[#0D6B60] animate-pulse" />}
+                                      👀 Прочитано · В работе
+                                    </span>
+                                    <span className={req.status === 'Выполнено' ? 'text-green-600 font-bold' : 'text-[#A09A92]'}>
+                                      ✅ Готово
+                                    </span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-[#EDE9E3] rounded-full overflow-hidden flex">
+                                    <div className={`h-full transition-all duration-500 rounded-full ${
+                                      req.status === 'Выполнено'
+                                        ? 'w-full bg-green-500'
+                                        : ['В работе', 'Готовится'].includes(req.status)
+                                        ? 'w-2/3 bg-[#0D6B60]'
+                                        : 'w-1/3 bg-amber-500'
+                                    }`} />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+
+                      <div className="divider" />
+                      <div className="flex gap-2">
+                        <button onClick={() => { setActiveRoom(rm); setModal('service'); }}
+                          className="btn-primary flex-1 py-3 text-[13px] flex items-center justify-center gap-2">
+                          <Bell size={15} /> Запросы
+                        </button>
+                        <button onClick={() => { setActiveRoom(rm); setExtendDate(rm.checkOut); setModal('extend'); }}
+                          className="btn-outline flex-1 py-3 text-[13px] flex items-center justify-center gap-2 text-[#0D6B60] border-[#C7EBE6]">
+                          <CalendarPlus size={15} /> Продлить
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Heading */}
           <div className="text-center py-2">
