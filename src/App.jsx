@@ -2616,57 +2616,76 @@ export default function App() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-[#B8963A] uppercase tracking-wider">История</p>
-                <h3 className="font-display text-lg font-semibold text-[#0F0F0F]">{guestName}</h3>
+                <h3 className="font-display text-lg font-semibold text-[#0F0F0F]">{guestName || 'Гость'}</h3>
                 {guestPhone && <p className="text-[11px] text-[#6B7280]">{guestPhone}</p>}
               </div>
               <button onClick={() => setModal(null)} className="text-[13px] text-[#6B7280] font-semibold hover:text-[#0F0F0F] border border-[#E8E4DF] px-3 py-1.5 rounded-lg">Закрыть</button>
             </div>
             <div className="divider" />
-            {history.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-2 text-center">
-                <Clock size={32} className="text-[#D8D3CC]" strokeWidth={1.5} />
-                <p className="text-[13px] text-[#A09A92] font-medium">История пуста</p>
-              </div>
-            ) : (
-              <div className="overflow-y-auto flex-1 space-y-2 -mx-1 px-1" style={{ scrollbarWidth:'none' }}>
-                {history.map((item, i) => (
-                  <div key={i} className="bg-[#F6F4F1] rounded-[14px] p-3.5 space-y-1.5">
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight">{item.title}</p>
-                        {item.roomNo && (
-                          <p className="text-[11px] text-[#0D6B60] font-bold mt-0.5 flex items-center gap-1">
-                            <Hash size={10} strokeWidth={2.5} /> Комната № {item.roomNo}
-                          </p>
-                        )}
-                      </div>
-                      <StatusBadge status={item.status} />
-                    </div>
-                    {item.type === 'booking' && (item.checkIn || item.checkOut) && (
-                      <div className="flex gap-3 text-[11px] text-[#6B7280]">
-                        <span>📅 {fmtDate(item.checkIn)}</span>
-                        <span>→</span>
-                        <span>{fmtDate(item.checkOut)}</span>
-                        {nights(item.checkIn,item.checkOut) > 0 && <span>({nights(item.checkIn,item.checkOut)} н.)</span>}
-                      </div>
-                    )}
-                    <div className="flex justify-between text-[11px] text-[#6B7280]">
-                      <span>{item.date}</span>
-                      <span className="font-semibold text-[#0F0F0F]">{item.price}</span>
-                    </div>
+            {(() => {
+              const myHistory = history.filter(item =>
+                (guestPhone && item.phone === guestPhone) ||
+                (guestName && item.guest === guestName) ||
+                (!guestPhone && !guestName)
+              );
+
+              if (myHistory.length === 0) {
+                return (
+                  <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-2 text-center">
+                    <Clock size={32} className="text-[#D8D3CC]" strokeWidth={1.5} />
+                    <p className="text-[13px] text-[#A09A92] font-medium">История пуста</p>
                   </div>
-                ))}
-              </div>
-            )}
-            {history.length > 0 && (
-              <>
-                <div className="divider" />
-                <button onClick={() => { if (confirm('Очистить историю?')) { setHistory([]); localStorage.removeItem('ak_history'); }}}
-                  className="flex items-center gap-1.5 text-[12px] text-red-400 hover:text-red-600 font-semibold">
-                  <Trash2 size={14} /> Очистить историю
-                </button>
-              </>
-            )}
+                );
+              }
+
+              return (
+                <>
+                  <div className="overflow-y-auto flex-1 space-y-2 -mx-1 px-1" style={{ scrollbarWidth:'none' }}>
+                    {myHistory.map((item, i) => (
+                      <div key={item.id || i} className="bg-[#F6F4F1] rounded-[14px] p-3.5 space-y-1.5">
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight">{item.title}</p>
+                            {item.roomNo && (
+                              <p className="text-[11px] text-[#0D6B60] font-bold mt-0.5 flex items-center gap-1">
+                                <Hash size={10} strokeWidth={2.5} /> Комната № {item.roomNo}
+                              </p>
+                            )}
+                          </div>
+                          <StatusBadge status={item.status} />
+                        </div>
+                        {item.type === 'booking' && (item.checkIn || item.checkOut) && (
+                          <div className="flex gap-3 text-[11px] text-[#6B7280]">
+                            <span>📅 {fmtDate(item.checkIn)}</span>
+                            <span>→</span>
+                            <span>{fmtDate(item.checkOut)}</span>
+                            {nights(item.checkIn,item.checkOut) > 0 && <span>({nights(item.checkIn,item.checkOut)} н.)</span>}
+                          </div>
+                        )}
+                        <div className="flex justify-between text-[11px] text-[#6B7280]">
+                          <span>{item.date}</span>
+                          <span className="font-semibold text-[#0F0F0F]">{item.price}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="divider" />
+                  <button onClick={async () => {
+                    if (!confirm('Очистить вашу историю?')) return;
+                    const myIds = myHistory.map(h => h.id);
+                    const updated = history.filter(h => !myIds.includes(h.id));
+                    setHistory(updated);
+                    try { localStorage.setItem('ak_history', JSON.stringify(updated)); } catch(e){}
+                    if (myIds.length > 0) {
+                      try { await supabase.from('orders').delete().in('id', myIds); } catch(e){}
+                    }
+                  }}
+                    className="flex items-center gap-1.5 text-[12px] text-red-400 hover:text-red-600 font-semibold">
+                    <Trash2 size={14} /> Очистить историю
+                  </button>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
