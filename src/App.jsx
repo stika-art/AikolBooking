@@ -284,25 +284,21 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
     const perksArr = roomForm.perks.split(',').map(s => s.trim()).filter(Boolean);
     const mainImg = roomForm.images[0] || roomForm.img || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=85';
     const allImages = roomForm.images.length > 0 ? roomForm.images : [mainImg];
-    // Сохраняем тарифы: только заполненные значения в числах
-    const tiers = {};
-    for (const [k, v] of Object.entries(roomForm.priceTiers || {})) {
-      const num = parseInt(String(v).replace(/\D/g, ''));
-      if (num > 0) tiers[Number(k)] = num;
-    }
-    // price берём из тарифа за 1 человека если есть, иначе из поля price
-    const basePrice = tiers[1] ? String(tiers[1].toLocaleString('ru-RU')) : roomForm.price;
+
+    const rawNum = parseInt(String(roomForm.price || '0').replace(/\D/g, '')) || 0;
+    const formattedPrice = rawNum > 0 ? rawNum.toLocaleString('ru-RU') : roomForm.price;
+    const tiers = { 1: rawNum };
 
     if (editingRoom) {
-      const updated = rooms.map(r => r.id === editingRoom.id ? { ...roomForm, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: basePrice } : r);
+      const updated = rooms.map(r => r.id === editingRoom.id ? { ...roomForm, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: formattedPrice } : r);
       setRooms(updated);
     } else {
-      const newRoom = { ...roomForm, id: `rm_${Date.now()}`, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: basePrice };
+      const newRoom = { ...roomForm, id: `rm_${Date.now()}`, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: formattedPrice };
       const updated = [...rooms, newRoom];
       setRooms(updated);
     }
     setEditingRoom(null);
-    setRoomForm({ id:'', name:'', subtitle:'', price:'', size:'', cap:'', img:'', images:[], perks:'', priceTiers:{ 1:'', 2:'', 3:'' } });
+    setRoomForm({ id:'', name:'', subtitle:'', price:'', size:'', cap:'', img:'', images:[], perks:'', priceTiers:{ 1:'' } });
   };
 
   const handleDeleteRoom = (id) => {
@@ -593,24 +589,17 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                     <input className="input-soft mt-1" required value={roomForm.cap} onChange={e => setRoomForm({...roomForm, cap: e.target.value})} placeholder="2 гостя" />
                   </div>
                 </div>
-                {/* Тарифы по количеству гостей */}
-                <div className="space-y-2">
-                  <label className="font-semibold text-[#6B7280] flex items-center gap-1.5">👤 Тарифы по гостям (сом/ночь)</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map(n => (
-                      <div key={n}>
-                        <label className="text-[11px] text-[#A09A92] font-semibold">{n === 3 ? '3+ чел.' : `${n} чел.`}</label>
-                        <input
-                          type="number"
-                          className="input-soft mt-1 text-[13px]"
-                          value={roomForm.priceTiers?.[n] || ''}
-                          onChange={e => setRoomForm(prev => ({ ...prev, priceTiers: { ...prev.priceTiers, [n]: e.target.value } }))}
-                          placeholder={n === 1 ? '3 500' : n === 2 ? '4 500' : '5 500'}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-[#A09A92]">Тариф «3+» применяется для 3 и более гостей. Если не заполнен — используется тариф «1 чел.»</p>
+                <div>
+                  <label className="font-semibold text-[#6B7280]">Цена за 1 гостя (сом/ночь)</label>
+                  <input
+                    type="number"
+                    className="input-soft mt-1"
+                    required
+                    value={roomForm.price}
+                    onChange={e => setRoomForm({...roomForm, price: e.target.value, priceTiers: { 1: e.target.value }})}
+                    placeholder="1500"
+                  />
+                  <p className="text-[10px] text-[#A09A92] mt-1">Гость при бронировании выберет количество гостей, и цена пересчитается автоматически.</p>
                 </div>
                 <div>
                   <label className="font-semibold text-[#6B7280]">Фотографии номера (можно выбать много)</label>
@@ -687,27 +676,14 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                   <img src={r.img} alt="" className="w-14 h-14 object-cover rounded-lg shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-[13px] text-[#0F0F0F] truncate">{r.name}</p>
-                    {r.priceTiers && Object.keys(r.priceTiers).length > 0 ? (
-                      <div className="flex gap-1.5 flex-wrap mt-0.5">
-                        {Object.entries(r.priceTiers).sort(([a],[b])=>a-b).map(([k,v]) => (
-                          <span key={k} className="text-[10px] bg-[#E0F4F1] text-[#0D6B60] font-bold px-1.5 py-0.5 rounded">
-                            {k === '3' || Number(k) >= 3 ? '3+' : k} чел: {Number(v).toLocaleString('ru-RU')} сом
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-[#0D6B60] font-bold">{r.price} сом/ночь</p>
-                    )}
+                    <p className="text-[11px] text-[#0D6B60] font-bold mt-0.5">{r.price} сом/ночь (за 1 чел.)</p>
                   </div>
                   <div className="flex gap-1">
                     <button onClick={() => { 
                       setEditingRoom(r); 
                       const imgs = r.images && r.images.length > 0 ? r.images : (r.img ? [r.img] : []);
-                      // Загружаем priceTiers: если есть — берём, иначе пустой объект
-                      const tiers = r.priceTiers && Object.keys(r.priceTiers).length > 0
-                        ? { 1: r.priceTiers[1] || '', 2: r.priceTiers[2] || '', 3: r.priceTiers[3] || '' }
-                        : { 1: '', 2: '', 3: '' };
-                      setRoomForm({ ...r, img: r.img || imgs[0] || '', images: imgs, perks: r.perks?.join(', ') || '', priceTiers: tiers }); 
+                      const rawPrice = String(r.price || '').replace(/\D/g, '');
+                      setRoomForm({ ...r, price: rawPrice, img: r.img || imgs[0] || '', images: imgs, perks: r.perks?.join(', ') || '' }); 
                     }} className="p-2 border rounded-lg text-[#6B7280] hover:bg-[#F6F4F1]">✏️</button>
                     <button onClick={() => handleDeleteRoom(r.id)} className="p-2 border rounded-lg text-red-400 hover:bg-red-50">🗑</button>
                   </div>
