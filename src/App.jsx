@@ -254,6 +254,51 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
   const [newPassConfirm, setNewPassConfirm] = useState('');
   const [passStatus, setPassStatus] = useState('');
 
+  // Настройки Wi-Fi
+  const [wifiSsid, setWifiSsid] = useState(() => localStorage.getItem('ak_wifi_ssid') || 'Aikol_Guest_WiFi');
+  const [wifiPass, setWifiPass] = useState(() => localStorage.getItem('ak_wifi_pass') || 'aikol2026');
+  const [wifiStatus, setWifiStatus] = useState('');
+  const [wifiCopied, setWifiCopied] = useState(false);
+  const [showWifiModal, setShowWifiModal] = useState(false);
+
+  // Отзывы и Оценка
+  const [ratingStars, setRatingStars] = useState(5);
+  const [ratingComment, setRatingComment] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [reviewsList, setReviewsList] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ak_reviews') || '[]'); } catch(e) { return []; }
+  });
+
+  const handleSendFeedback = async (e, roomNo) => {
+    e.preventDefault();
+    const newReview = {
+      id: `rev_${Date.now()}`,
+      guest: guestName || 'Гость',
+      phone: guestPhone || '—',
+      roomNo: roomNo || activeRoom?.roomNo || '—',
+      stars: ratingStars,
+      comment: ratingComment,
+      date: new Date().toLocaleDateString('ru-RU')
+    };
+
+    const updatedReviews = [newReview, ...reviewsList];
+    setReviewsList(updatedReviews);
+    try { localStorage.setItem('ak_reviews', JSON.stringify(updatedReviews)); } catch(e){}
+    setFeedbackSent(true);
+
+    try {
+      await supabase.from('orders').insert([{
+        id: newReview.id,
+        status: 'review',
+        payload: newReview
+      }]);
+    } catch(e){}
+
+    const starsStr = '⭐'.repeat(ratingStars);
+    const tgMsg = `⭐ <b>НОВЫЙ ОТЗЫВ О ГОСТИНИЦЕ «АЙКӨЛ»!</b>\n\n<b>Оценка:</b> ${starsStr} (${ratingStars}/5)\n<b>Гость:</b> ${guestName || 'Гость'}\n<b>Комната:</b> № ${roomNo || activeRoom?.roomNo || '—'}\n<b>Телефон:</b> ${guestPhone || 'Не указан'}\n\n<b>Отзыв:</b>\n"${ratingComment || 'Без комментария'}"`;
+    sendTelegramNotification(tgMsg);
+  };
+
   // Сбрасываем пароли при открытии панели — чтобы браузер не заполнял их автоматически
   useEffect(() => {
     setPass('');
@@ -905,6 +950,39 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                     🔗 Активировать интерактивные кнопки в Telegram
                   </button>
                 </div>
+              </form>
+            </div>
+
+            {/* Настройки Wi-Fi для гостей */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                <Wifi size={16} className="text-[#0D6B60]" /> Настройки Wi-Fi отеля
+              </h3>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                localStorage.setItem('ak_wifi_ssid', wifiSsid);
+                localStorage.setItem('ak_wifi_pass', wifiPass);
+                setWifiStatus('✅ Настройки Wi-Fi сохранены!');
+                setTimeout(() => setWifiStatus(''), 3000);
+              }} className="space-y-3 text-[12px]">
+                <div>
+                  <label className="font-semibold text-[#6B7280]">Имя сети Wi-Fi (SSID)</label>
+                  <input type="text" className="input-soft mt-1" required placeholder="Aikol_Guest_WiFi"
+                    value={wifiSsid} onChange={e => setWifiSsid(e.target.value)} />
+                </div>
+                <div>
+                  <label className="font-semibold text-[#6B7280]">Пароль от Wi-Fi</label>
+                  <input type="text" className="input-soft mt-1 font-mono" required placeholder="aikol2026"
+                    value={wifiPass} onChange={e => setWifiPass(e.target.value)} />
+                </div>
+                {wifiStatus && (
+                  <div className="text-[11px] p-2.5 rounded-lg border font-medium bg-green-50 text-green-700 border-green-200">
+                    {wifiStatus}
+                  </div>
+                )}
+                <button type="submit" className="btn-primary w-full py-2.5 text-[12px]">
+                  Сохранить Wi-Fi
+                </button>
               </form>
             </div>
 
@@ -2505,6 +2583,34 @@ export default function App() {
                         );
                       })()}
 
+                      {/* 📶 Блок Wi-Fi в номере */}
+                      <div className="bg-gradient-to-br from-[#0D6B60]/10 to-[#0D6B60]/5 border border-[#C7EBE6] rounded-[16px] p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-[#0D6B60] text-white flex items-center justify-center shadow-sm shrink-0">
+                              <Wifi size={16} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-bold text-[#0F0F0F]">Wi-Fi в номере</p>
+                              <p className="text-[11px] text-[#0D6B60] font-bold truncate">{wifiSsid}</p>
+                            </div>
+                          </div>
+                          <button onClick={() => setShowWifiModal(true)}
+                            className="text-[10.5px] font-bold text-[#0D6B60] bg-white border border-[#C7EBE6] px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-[#F0FAF8] transition-all flex items-center gap-1 shrink-0">
+                            📱 QR-код
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(wifiPass);
+                            setWifiCopied(true);
+                            setTimeout(() => setWifiCopied(false), 2500);
+                          }}
+                          className="btn-primary w-full py-2 text-[11.5px] flex items-center justify-center gap-1.5">
+                          {wifiCopied ? '✅ Пароль скопирован!' : `📋 Скопировать пароль (${wifiPass})`}
+                        </button>
+                      </div>
+
                       <div className="divider" />
                       <div className="flex gap-2">
                         <button onClick={() => { setActiveRoom(rm); setModal('service'); }}
@@ -2519,6 +2625,47 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+
+                {/* ⭐ Виджет отзыва о проживании */}
+                <div className="bg-white border border-[#EDE9E3] rounded-[20px] p-4 space-y-3 shadow-sm animate-up">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] font-bold text-[#B8963A] uppercase tracking-wider">Отзыв о гостинице</p>
+                      <h4 className="font-display text-base font-bold text-[#0F0F0F]">Оцените наше обслуживание</h4>
+                    </div>
+                    <span className="text-xl">⭐</span>
+                  </div>
+
+                  {feedbackSent ? (
+                    <div className="bg-green-50 border border-green-200 rounded-[12px] p-3 text-center space-y-1 animate-scale">
+                      <p className="text-[13px] font-bold text-green-700">Спасибо за ваш отзыв! 🙏</p>
+                      <p className="text-[11px] text-green-600">Ваша оценка отправлена администрации гостиницы «Айкөл».</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={(e) => handleSendFeedback(e, myActiveRoomsList[0]?.roomNo)} className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 py-1">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRatingStars(star)}
+                            className={`text-2xl transition-transform ${star <= ratingStars ? 'scale-110 opacity-100' : 'opacity-30 scale-90'}`}>
+                            ⭐
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        className="input-soft text-[12px] min-h-[65px] resize-none"
+                        placeholder="Напишите пару слов о проживании или работе персонала..."
+                        value={ratingComment}
+                        onChange={e => setRatingComment(e.target.value)}
+                      />
+                      <button type="submit" className="btn-primary w-full py-2.5 text-[12.5px] flex items-center justify-center gap-1.5">
+                        <Send size={14} /> Отправить отзыв
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             );
           })()}
@@ -2854,6 +3001,35 @@ export default function App() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── WI-FI QR MODAL ── */}
+      {showWifiModal && (
+        <div className="modal-backdrop animate-scale">
+          <div className="modal-box text-center space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-display font-bold text-lg text-[#0F0F0F] flex items-center gap-2">
+                <Wifi size={18} className="text-[#0D6B60]" /> Подключение к Wi-Fi
+              </h3>
+              <button onClick={() => setShowWifiModal(false)} className="text-[#6B7280] font-bold p-1">✕</button>
+            </div>
+            <div className="bg-[#F6F4F1] p-4 rounded-[16px] inline-block shadow-inner">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(`WIFI:S:${wifiSsid};T:WPA;P:${wifiPass};;`)}`}
+                alt="Wi-Fi QR Code"
+                className="w-48 h-48 mx-auto rounded-lg shadow-md border border-white"
+              />
+            </div>
+            <div className="space-y-1.5 text-[12px] bg-[#F0FAF8] p-3 rounded-[12px] border border-[#C7EBE6]">
+              <p className="font-bold text-[#0F0F0F]">Сеть: <span className="text-[#0D6B60] font-black">{wifiSsid}</span></p>
+              <p className="font-semibold text-[#6B7280]">Пароль: <span className="font-mono text-[#0F0F0F] font-bold">{wifiPass}</span></p>
+              <p className="text-[10.5px] text-[#A09A92] pt-0.5">Наведите камеру смартфона на QR-код для автоматического входа в Wi-Fi</p>
+            </div>
+            <button onClick={() => setShowWifiModal(false)} className="btn-outline w-full py-2.5 text-[13px]">
+              Закрыть
+            </button>
           </div>
         </div>
       )}
