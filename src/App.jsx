@@ -2257,7 +2257,7 @@ export default function App() {
                     const activeReqs = history.filter(o =>
                       (o.roomNo === activeRoom.roomNo || o.roomNo === String(activeRoom.roomNo)) &&
                       ['food', 'request'].includes(o.type) &&
-                      ['Принят', 'Ожидает', 'В работе', 'Готовится'].includes(o.status)
+                      ['Принят', 'Ожидает', 'В работе', 'Готовится', 'Выполнено'].includes(o.status)
                     );
                     if (activeReqs.length === 0) return null;
 

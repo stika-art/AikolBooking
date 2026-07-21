@@ -24,29 +24,34 @@ export default async function handler(req, res) {
     const { id: queryId, data, message } = body.callback_query;
     if (!data) return res.status(200).json({ ok: true });
 
-    // Формат callback_data: action_orderId (например: confirm_BK-219, work_OD-1234, done_RQ-5678, cancel_BK-219)
+    // Формат callback_data: action_orderId (например: confirm_BK-219, work_OD-1234, done_OD-1234, cancel_BK-219)
     const parts = data.split('_');
     const action = parts[0];
     const orderId = parts.slice(1).join('_');
 
     let newStatus = '';
     let statusLabel = '';
+    let updatedButtons = [];
 
     if (action === 'confirm') {
       newStatus = 'Подтверждено';
       statusLabel = '✅ ПОДТВЕРЖДЕНО В TELEGRAM';
+      updatedButtons = [[ { text: '⚡ В работу', callback_data: `work_${orderId}` } ]];
     } else if (action === 'work') {
       newStatus = 'В работе';
       statusLabel = '⚡ В РАБОТЕ (TELEGRAM)';
+      updatedButtons = [[ { text: '✅ Выполнено', callback_data: `done_${orderId}` } ]];
     } else if (action === 'done') {
       newStatus = 'Выполнено';
       statusLabel = '✅ ВЫПОЛНЕНО (TELEGRAM)';
+      updatedButtons = []; // Удаляем кнопки после выполнения
     } else if (action === 'cancel') {
       newStatus = 'Отменено';
       statusLabel = '❌ ОТМЕНЕНО В TELEGRAM';
+      updatedButtons = []; // Удаляем кнопки после отмены
     }
 
-    // Рабочий ключ Supabase (соответствует App.jsx)
+    // Рабочий ключ Supabase
     const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3Nwd2VxeGZ3enB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NjI0NDAsImV4cCI6MjEwMDAzODQ0MH0.Uyso9LTS3qFdFEHQfQh-FHoVExYNMqslu4OeR3B_a2s';
 
@@ -63,14 +68,10 @@ export default async function handler(req, res) {
       botToken = tgRows?.[0]?.payload?.token;
     } catch(e) {}
 
-    // Fallback: если в базе нет tg_config, берем из переменной или сообщения
-    if (!botToken && process.env.TELEGRAM_BOT_TOKEN) {
-      botToken = process.env.TELEGRAM_BOT_TOKEN;
-    }
+    const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
 
     // 2. Отправляем МГНОВЕННЫЙ отклик Telegram (показывает всплывающее окно)
-    if (queryId) {
-      const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
+    if (queryId && activeToken) {
       await fetch(`https://api.telegram.org/bot${activeToken}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,11 +113,13 @@ export default async function handler(req, res) {
         });
       }
 
-      // 5. Редактируем сообщение в самом Telegram-чате
-      const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
+      // 5. Редактируем сообщение И КНОПКИ в самом Telegram-чате
       if (activeToken && message) {
         const originalText = message.text || '';
-        const updatedMessageText = originalText + `\n\n📌 <b>СТАТУС: ${statusLabel}</b>`;
+        // Очищаем старые приписки статусов если нажимали несколько раз
+        const cleanText = originalText.split('\n\n📌 <b>СТАТУС:')[0];
+        const updatedMessageText = cleanText + `\n\n📌 <b>СТАТУС: ${statusLabel}</b>`;
+
         await fetch(`https://api.telegram.org/bot${activeToken}/editMessageText`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -124,7 +127,8 @@ export default async function handler(req, res) {
             chat_id: message.chat.id,
             message_id: message.message_id,
             text: updatedMessageText,
-            parse_mode: 'HTML'
+            parse_mode: 'HTML',
+            reply_markup: { inline_keyboard: updatedButtons }
           })
         });
       }
