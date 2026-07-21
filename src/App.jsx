@@ -2290,7 +2290,7 @@ export default function App() {
                         const activeReqs = history.filter(o =>
                           (o.roomNo === rm.roomNo || o.roomNo === String(rm.roomNo)) &&
                           ['food', 'request'].includes(o.type) &&
-                          ['Принят', 'Ожидает', 'В работе', 'Готовится', 'Выполнено'].includes(o.status)
+                          ['Принят', 'Ожидает', 'В работе', 'Готовится'].includes(o.status)
                         );
                         if (activeReqs.length === 0) return null;
 
