@@ -55,8 +55,9 @@ export default async function handler(req, res) {
     const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hdGxoamh3c3Nwd2VxeGZ3enB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NjI0NDAsImV4cCI6MjEwMDAzODQ0MH0.Uyso9LTS3qFdFEHQfQh-FHoVExYNMqslu4OeR3B_a2s';
 
-    // 1. Получаем токен бота из Supabase
+    // 1. Получаем токен бота и Chat ID администратора из Supabase
     let botToken = null;
+    let adminChatId = null;
     try {
       const tgTokenRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.tg_config`, {
         headers: {
@@ -66,9 +67,26 @@ export default async function handler(req, res) {
       });
       const tgRows = await tgTokenRes.json();
       botToken = tgRows?.[0]?.payload?.token;
+      adminChatId = tgRows?.[0]?.payload?.chat;
     } catch(e) {}
 
     const activeToken = botToken || '8550144955:AAHtKmX0nzMy5rIkbIHPpFCS9sNP1pzRyJM';
+
+    // 🔒 ПРОВЕРКА БЕЗОПАСНОСТИ: Если кто-то посторонний нажал кнопку из другого чата
+    if (adminChatId && message?.chat?.id && String(message.chat.id) !== String(adminChatId)) {
+      if (queryId && activeToken) {
+        await fetch(`https://api.telegram.org/bot${activeToken}/answerCallbackQuery`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            callback_query_id: queryId,
+            text: '⛔ Отказано в доступе: Нажатие разрешено только администратору!',
+            show_alert: true
+          })
+        });
+      }
+      return res.status(200).json({ ok: true, note: 'Unauthorized chat ID blocked' });
+    }
 
     // 2. Отправляем МГНОВЕННЫЙ отклик Telegram (показывает всплывающее окно)
     if (queryId && activeToken) {
@@ -116,7 +134,6 @@ export default async function handler(req, res) {
       // 5. Редактируем сообщение И КНОПКИ в самом Telegram-чате
       if (activeToken && message) {
         const originalText = message.text || '';
-        // Очищаем старые приписки статусов если нажимали несколько раз
         const cleanText = originalText.split('\n\n📌 <b>СТАТУС:')[0];
         const updatedMessageText = cleanText + `\n\n📌 <b>СТАТУС: ${statusLabel}</b>`;
 
