@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #FAFAF8;
+    color: #1A1A1A;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { display: none !important; width: 0 !important; }
+  * { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+}
+
+/* ─── Premium Typography ────────────────────────────────────── */
+.font-display { font-family: 'Playfair Display', Georgia, serif; }
+
+/* ─── Color Tokens ──────────────────────────────────────────── */
+:root {
+  --ink:    #0F0F0F;
+  --muted:  #6B7280;
+  --line:   #E8E4DF;
+  --bg:     #FAFAF8;
+  --bgcard: #FFFFFF;
+  --gold:   #B8963A;
+  --gold-l: #F5EDD4;
+  --teal:   #0D6B60;
+  --teal-l: #E0F4F1;
+}
+
+/* ─── Premium Welcome Card ──────────────────────────────────── */
+.welcome-card {
+  background: #FFFFFF;
+  border-radius: 32px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 24px 56px -12px rgba(0,0,0,0.10),
+    0 6px 20px -4px rgba(0,0,0,0.06);
+  border: 1px solid #EDE9E3;
+}
+
+/* ─── Premium Room Card ─────────────────────────────────────── */
+.room-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #EDE9E3;
+  box-shadow: 0 4px 16px -4px rgba(0,0,0,0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+.room-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -8px rgba(0,0,0,0.13);
+}
+
+/* ─── Gold Pill Badge ───────────────────────────────────────── */
+.badge-gold {
+  background: var(--gold-l);
+  color: var(--gold);
+  border: 1px solid rgba(184,150,58,0.25);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ─── Primary Button ────────────────────────────────────────── */
+.btn-primary {
+  background: var(--teal);
+  color: #FFFFFF;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  padding: 14px 24px;
+  transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 4px 16px rgba(13,107,96,0.3);
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #0A5248;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(13,107,96,0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ─── Outline Button ────────────────────────────────────────── */
+.btn-outline {
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid #D8D3CC;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px 20px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-outline:hover { background: #F6F4F1; color: var(--ink); border-color: #C4BDB5; }
+
+/* ─── Soft Input ────────────────────────────────────────────── */
+.input-soft {
+  background: #F6F4F1;
+  border: 1.5px solid #E8E4DF;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.input-soft::placeholder { color: #A09A92; font-weight: 400; }
+.input-soft:focus { background: #fff; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,107,96,0.1); }
+.input-soft.error { border-color: #EF4444; background: #FEF2F2; box-shadow: 0 0 0 3px rgba(239,68,68,0.08); }
+
+/* ─── Divider ───────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--line); }
+
+/* ─── Teal Chip ─────────────────────────────────────────────── */
+.chip {
+  background: #F0FAF8;
+  color: #0D6B60;
+  border: 1px solid #C7EBE6;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* ─── Fade-in Animation ─────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-up { animation: fadeUp 0.45s ease both; }
+
+@keyframes scaleFade {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scale { animation: scaleFade 0.35s ease both; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Modal Backdrop ────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(10,10,10,0.55);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-box {
+  background: #FFFFFF;
+  border-radius: 28px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.2);
+  border: 1px solid #EDE9E3;
+}
