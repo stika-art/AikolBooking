@@ -16,19 +16,23 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Отправка сообщений в Telegram Бот
-const sendTelegramNotification = async (text) => {
+const sendTelegramNotification = async (text, inlineKeyboard = null) => {
   try {
     const token = localStorage.getItem('ak_tg_token');
     const chatId = localStorage.getItem('ak_tg_chat');
     if (!token || !chatId) return false;
+    const bodyObj = {
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML'
+    };
+    if (inlineKeyboard) {
+      bodyObj.reply_markup = { inline_keyboard: inlineKeyboard };
+    }
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: 'HTML'
-      })
+      body: JSON.stringify(bodyObj)
     });
     return res.ok;
   } catch (e) {
@@ -895,6 +899,29 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                     Сохранить
                   </button>
                 </div>
+
+                <div className="pt-2 border-t border-[#EDE9E3]">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!tgToken) { setTgStatus('⚠️ Заполните Telegram Bot Token!'); return; }
+                      const webhookUrl = `${window.location.origin}/api/telegram`;
+                      try {
+                        const res = await fetch(`https://api.telegram.org/bot${tgToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+                        const data = await res.json();
+                        if (data.ok) {
+                          setTgStatus(`✅ Кнопки в Telegram подключены! Webhook: ${webhookUrl}`);
+                        } else {
+                          setTgStatus(`❌ Ошибка подключения: ${data.description}`);
+                        }
+                      } catch (e) {
+                        setTgStatus('❌ Ошибка сети при настройке Webhook');
+                      }
+                    }}
+                    className="btn-outline w-full py-2 text-[11px] flex items-center justify-center gap-1.5 text-purple-700 border-purple-200 hover:bg-purple-50">
+                    🔗 Активировать интерактивные кнопки в Telegram
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -1333,13 +1360,20 @@ export default function App() {
       // Отправка уведомления в Telegram Бот
       sendTelegramNotification(
         `🏨 <b>НОВАЯ ЗАЯВКА НА БРОНИРОВАНИЕ!</b>\n\n` +
+        `<b>Код:</b> <code>${cleanEntry.id}</code>\n` +
         `<b>Номер:</b> ${room.name} (№ ${roomNo})\n` +
         `<b>Гость:</b> ${guestName}\n` +
         `<b>Телефон:</b> <code>${guestPhone}</code>\n` +
         `<b>Гостей:</b> ${guestsCount} чел.\n` +
         `<b>Заезд:</b> ${fmtDate(checkIn)}\n` +
         `<b>Выезд:</b> ${fmtDate(checkOut)} (${n} ноч.)\n` +
-        `<b>Итого:</b> ${totalPrice}`
+        `<b>Итого:</b> ${totalPrice}`,
+        [
+          [
+            { text: '✅ Подтвердить', callback_data: `confirm_${cleanEntry.id}` },
+            { text: '❌ Отменить', callback_data: `cancel_${cleanEntry.id}` }
+          ]
+        ]
       );
       setPendingId(id);   // ждём подтверждения
       try {
@@ -1419,11 +1453,18 @@ export default function App() {
     // Отправка уведомления в Telegram Бот
     sendTelegramNotification(
       `🍽️ <b>НОВЫЙ ЗАКАЗ ЕДЫ В НОМЕР!</b>\n\n` +
+      `<b>Код:</b> <code>${entry.id}</code>\n` +
       `<b>Заказ:</b> ${dishTitle}\n` +
       `<b>Номер комнаты:</b> № ${activeRoom.roomNo} (${activeRoom.name})\n` +
       `<b>Гость:</b> ${guestName}\n` +
       `<b>Телефон:</b> <code>${guestPhone}</code>\n` +
-      `<b>Время заказа:</b> ${entry.date}`
+      `<b>Время заказа:</b> ${entry.date}`,
+      [
+        [
+          { text: '⚡ В работу', callback_data: `work_${entry.id}` },
+          { text: '✅ Выполнено', callback_data: `done_${entry.id}` }
+        ]
+      ]
     );
 
     setModal(null);
@@ -1461,11 +1502,18 @@ export default function App() {
 
     sendTelegramNotification(
       `🛎️ <b>НОВЫЙ ЗАПРОС В НОМЕР!</b>\n\n` +
+      `<b>Код:</b> <code>${entry.id}</code>\n` +
       `<b>Номер комнаты:</b> № ${activeRoom.roomNo} (${activeRoom.name})\n` +
       `<b>Запрос:</b> ${reqText.trim()}\n` +
       `<b>Гость:</b> ${guestName}\n` +
       `<b>Телефон:</b> <code>${guestPhone}</code>\n` +
-      `<b>Время:</b> ${entry.date}`
+      `<b>Время:</b> ${entry.date}`,
+      [
+        [
+          { text: '⚡ В работу', callback_data: `work_${entry.id}` },
+          { text: '✅ Выполнено', callback_data: `done_${entry.id}` }
+        ]
+      ]
     );
 
     setModal(null);
