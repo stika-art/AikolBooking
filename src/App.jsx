@@ -212,6 +212,24 @@ const getIngredientsArray = (ing) => {
   return [];
 };
 
+const DEFAULT_MENU_CATEGORIES = [
+  'Завтраки',
+  'Горячие блюда',
+  'Горячее',
+  'Супы и шурпа',
+  'Супы',
+  'Салаты и закуски',
+  'Фастфуд и шаурма',
+  'Шашлыки и гриль',
+  'Пицца и паста',
+  'Десерты и выпечка',
+  'Напитки',
+  'Кофе и чай',
+  'Коктейли',
+  'Соусы и хлеб',
+  'Детское меню'
+];
+
 const getOrderAmount = (o) => {
   if (!o) return 0;
   if (typeof o.amount === 'number' && !isNaN(o.amount)) return o.amount;
@@ -780,11 +798,23 @@ function AdminPanel({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="font-semibold text-[#6B7280]">Категория</label>
-                    <select className="input-soft mt-1" value={dishForm.category} onChange={e => setDishForm({...dishForm, category: e.target.value})}>
-                      <option>Завтраки</option>
-                      <option>Горячее</option>
-                      <option>Супы</option>
-                      <option>Напитки</option>
+                    <select 
+                      className="input-soft mt-1" 
+                      value={dishForm.category} 
+                      onChange={e => {
+                        if (e.target.value === '__custom__') {
+                          const newCat = prompt('Введите название вашей категории:');
+                          if (newCat && newCat.trim()) {
+                            setDishForm({ ...dishForm, category: newCat.trim() });
+                          }
+                        } else {
+                          setDishForm({ ...dishForm, category: e.target.value });
+                        }
+                      }}>
+                      {Array.from(new Set([...DEFAULT_MENU_CATEGORIES, ...menuList.map(m => m.category).filter(Boolean)])).map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__custom__">➕ Своя категория (ввести вручную)...</option>
                     </select>
                   </div>
                   <div>
@@ -2321,7 +2351,8 @@ export default function App() {
 
   /* ─── RESTAURANT FULL SCREEN ─────────────────────────────── */
   if (showMenuScreen) {
-    const categories = ['Все', 'Завтраки', 'Горячее', 'Супы', 'Напитки'];
+    const existingCats = Array.from(new Set(menuList.map(m => m.category).filter(Boolean)));
+    const categories = ['Все', ...Array.from(new Set([...DEFAULT_MENU_CATEGORIES.filter(c => existingCats.includes(c) || ['Завтраки', 'Горячее', 'Супы', 'Фастфуд и шаурма', 'Напитки', 'Десерты и выпечка', 'Шашлыки и гриль'].includes(c)), ...existingCats]))];
     const filteredMenu = selectedCategory === 'Все'
       ? menuList
       : menuList.filter(f => f.category === selectedCategory);
