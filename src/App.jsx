@@ -556,6 +556,30 @@ function AdminPanel({
     } catch (e) {}
   };
 
+  const handleClearReports = async () => {
+    if (!window.confirm('⚠️ Вы действительно хотите сбросить всю финансовую отчётность и обнулить историю доходов?\n\nСуммы общего дохода, броней и кухни будут сброшены на 0 сом. Это действие невозможно отменить.')) {
+      return;
+    }
+    const systemIds = ['app_rooms', 'app_menu', 'app_admin_pass', 'tg_config'];
+    const idsToDelete = history
+      .filter(o => !systemIds.includes(o.id) && !o.id?.startsWith('rev_') && o.status !== 'review')
+      .map(o => o.id);
+
+    try {
+      if (idsToDelete.length > 0) {
+        await supabase.from('orders').delete().in('id', idsToDelete);
+      }
+      setHistory([]);
+      localStorage.setItem('ak_history', '[]');
+      alert('✅ Вся финансовая отчётность и история заказов успешно сброшена на 0!');
+    } catch (err) {
+      console.error('Ошибка сброса отчётности:', err);
+      setHistory([]);
+      localStorage.setItem('ak_history', '[]');
+      alert('✅ Отчётность сброшена на 0!');
+    }
+  };
+
   const filtered = filter === 'all'
     ? orders
     : filter === 'request'
@@ -1107,34 +1131,41 @@ function AdminPanel({
                   <h3 className="font-display text-lg font-bold text-[#0F0F0F]">📊 Финансовая отчётность</h3>
                   <p className="text-[12px] text-[#6B7280]">Сводный анализ всех доходов, броней и заказов</p>
                 </div>
-                <button
-                  onClick={() => {
-                    const rows = [
-                      ['ID', 'Тип', 'Название/Описание', 'Гость', 'Телефон', 'Комната', 'Сумма (сом)', 'Статус', 'Дата'],
-                      ...reportFilteredHistory.map(o => [
-                        o.id,
-                        o.type === 'booking' ? 'Бронирование' : o.type === 'food' ? 'Еда' : 'Запрос в номер',
-                        o.title || '',
-                        o.guest || '',
-                        o.phone || '',
-                        o.roomNo || '',
-                        getOrderAmount(o),
-                        o.status || '',
-                        o.date || ''
-                      ])
-                    ];
-                    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement('a');
-                    link.setAttribute('href', encodedUri);
-                    link.setAttribute('download', `Aikol_Report_${new Date().toISOString().slice(0,10)}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-[#0D6B60] border-[#C7EBE6] hover:bg-[#F0FAF8]">
-                  📥 Скачать Excel / CSV
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const rows = [
+                        ['ID', 'Тип', 'Название/Описание', 'Гость', 'Телефон', 'Комната', 'Сумма (сом)', 'Статус', 'Дата'],
+                        ...reportFilteredHistory.map(o => [
+                          o.id,
+                          o.type === 'booking' ? 'Бронирование' : o.type === 'food' ? 'Еда' : 'Запрос в номер',
+                          o.title || '',
+                          o.guest || '',
+                          o.phone || '',
+                          o.roomNo || '',
+                          getOrderAmount(o),
+                          o.status || '',
+                          o.date || ''
+                        ])
+                      ];
+                      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+                      const encodedUri = encodeURI(csvContent);
+                      const link = document.createElement('a');
+                      link.setAttribute('href', encodedUri);
+                      link.setAttribute('download', `Aikol_Report_${new Date().toISOString().slice(0,10)}.csv`);
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-[#0D6B60] border-[#C7EBE6] hover:bg-[#F0FAF8]">
+                    📥 Скачать Excel / CSV
+                  </button>
+                  <button
+                    onClick={handleClearReports}
+                    className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-semibold transition-colors">
+                    🗑️ Сбросить всё в 0
+                  </button>
+                </div>
               </div>
 
               {/* 📅 Фильтр по датам */}
