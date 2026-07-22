@@ -299,7 +299,7 @@ const TRANSLATIONS = {
     welcome: 'Добро пожаловать',
     sub: 'в гостиницу «Айкөл»',
     desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.',
-    location: 'Балыкчы, Иссык-Куль',
+    location: 'Балыкчы, ул. Восточная 3',
     rating: 'Рейтинг 4.9',
     safe: 'Безопасно',
     rest: 'Ресторан',
@@ -354,7 +354,7 @@ const TRANSLATIONS = {
     welcome: 'Кош келиңиздер',
     sub: '«Айкөл» мейманканасына',
     desc: 'Ысык-Көлдүн жээгиндеги жайлуулук, жогорку комфорт жана мыкты кызмат.',
-    location: 'Балыкчы, Ысык-Көл',
+    location: 'Балыкчы к., Чыгыш 3 көч.',
     rating: 'Рейтинг 4.9',
     safe: 'Коопсуз',
     rest: 'Ресторан',
@@ -409,7 +409,7 @@ const TRANSLATIONS = {
     welcome: 'Welcome',
     sub: 'to "Aikol" Hotel',
     desc: 'Cozy, premium comfort and faultless service on the shore of Lake Issyk-Kul.',
-    location: 'Balykchy, Issyk-Kul',
+    location: 'Balykchy, 3 Vostochnaya St.',
     rating: 'Rating 4.9',
     safe: 'Safe',
     rest: 'Restaurant',
@@ -2674,7 +2674,7 @@ export default function App() {
               <p className="text-[22px] font-black text-[#0D6B60] leading-tight">{viewRoom.price} <span className="text-[13px] font-semibold text-[#6B7280]">сом</span></p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] text-[#6B7280] font-medium">г. Балыкчы</p>
+              <p className="text-[11px] text-[#6B7280] font-medium">г. Балыкчы, ул. Восточная 3</p>
               <p className="text-[11px] text-[#0D6B60] font-semibold flex items-center gap-1 justify-end mt-0.5">
                 <MapPin size={10} strokeWidth={2.5} /> Иссык-Куль
               </p>
@@ -2769,7 +2769,7 @@ export default function App() {
                 </div>
               </div>
               <div className="divider" />
-              <div className="flex justify-between"><span className="text-[#6B7280]">Локация</span><span className="font-bold">г. Балыкчы</span></div>
+              <div className="flex justify-between"><span className="text-[#6B7280]">Локация</span><span className="font-bold">г. Балыкчы, ул. Восточная 3</span></div>
             </div>
 
             <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-[10px] px-3 py-2 flex items-center gap-2">
