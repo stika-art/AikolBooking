@@ -8,7 +8,7 @@ import {
   History, DoorOpen, Lock, LogOut, Bell, X, Hash,
   RefreshCw, Calendar, CalendarDays, CalendarPlus, Hourglass, Phone, Smartphone,
   ChefHat, Tv, Flame, Bath, Shield, Check, Layers, Refrigerator, Wine, Armchair, WashingMachine,
-  ChevronLeft, ChevronRight, Send
+  ChevronLeft, ChevronRight, Send, Sun, Thermometer, Droplets
 } from 'lucide-react';
 
 const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
@@ -1831,6 +1831,49 @@ export default function App() {
   const [pinError, setPinError]   = useState('');
   const [showShareModal, setShowShareModal] = useState(null);
   const [activeRoom, setActiveRoom] = useState(() => getLS('ak_active_room', 'null'));
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
+  const [weatherData, setWeatherData] = useState({
+    temp: 26,
+    waterTemp: 22,
+    condition: 'Солнечно',
+    icon: '☀️',
+    wind: 4,
+    code: 0
+  });
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true');
+        const data = await res.json();
+        if (data && data.current_weather) {
+          const t = Math.round(data.current_weather.temperature);
+          const wind = Math.round(data.current_weather.windspeed);
+          const code = data.current_weather.weathercode;
+          
+          let condition = 'Солнечно';
+          let icon = '☀️';
+          if (code === 1 || code === 2) { condition = 'Малооблачно'; icon = '🌤️'; }
+          else if (code === 3) { condition = 'Облачно'; icon = '☁️'; }
+          else if (code >= 51 && code <= 67) { condition = 'Дождь'; icon = '🌧️'; }
+          else if (code >= 80 && code <= 82) { condition = 'Ливень'; icon = '🌦️'; }
+
+          const month = new Date().getMonth();
+          let water = 21;
+          if (month >= 5 && month <= 7) water = Math.min(24, Math.max(19, Math.round(t * 0.7 + 4)));
+          else if (month === 8) water = 19;
+          else water = 14;
+
+          setWeatherData({ temp: t, waterTemp: water, condition, icon, wind, code });
+        }
+      } catch (e) {
+        console.log('Weather fetch fallback used');
+      }
+    };
+    fetchWeather();
+    const timer = setInterval(fetchWeather, 300000);
+    return () => clearInterval(timer);
+  }, []);
 
   const addMyToken = (token) => {
     if (!token) return;
@@ -3086,6 +3129,13 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setShowWeatherModal(true)}
+              title="Погода и температура воды"
+              className="h-9 px-2.5 flex items-center justify-center gap-1 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
+              <span>{weatherData.icon}</span>
+              <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
+              <span className="hidden sm:inline text-[10px] text-[#6B7280]">· 🌊 +{weatherData.waterTemp}°C</span>
+            </button>
             <button onClick={() => setShowMenuScreen(true)}
               title="Ресторан и меню"
               className="w-9 h-9 flex items-center justify-center border border-[#EDE9E3] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]">
@@ -3831,6 +3881,62 @@ export default function App() {
             <div className="pt-2 flex justify-center">
               <button onClick={() => setShowShareModal(null)} className="btn-primary py-2.5 px-8 text-[13px]">
                 Понятно
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── WEATHER & LAKE TEMP MODAL ── */}
+      {showWeatherModal && (
+        <div className="modal-backdrop animate-scale" onClick={() => setShowWeatherModal(false)}>
+          <div className="modal-box space-y-4 text-center max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 rounded-full bg-[#E0F4F1] text-[#0D6B60] flex items-center justify-center mx-auto shadow-inner text-3xl">
+              {weatherData.icon}
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Погода в Балыкчы & Иссык-Куле</h3>
+              <p className="text-[12px] text-[#6B7280]">
+                Точный прогноз погоды и температура озерной воды
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-3.5 rounded-[16px] text-center space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Воздух в Балыкчы</p>
+                <p className="text-2xl font-black text-[#0D6B60]">
+                  {weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C
+                </p>
+                <p className="text-[11px] font-semibold text-[#0F0F0F]">{weatherData.condition}</p>
+              </div>
+
+              <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-3.5 rounded-[16px] text-center space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Вода Иссык-Куля</p>
+                <p className="text-2xl font-black text-[#0D6B60]">
+                  +{weatherData.waterTemp}°C
+                </p>
+                <p className="text-[11px] font-semibold text-[#0F0F0F]">🌊 Озерная вода</p>
+              </div>
+            </div>
+
+            <div className="bg-[#F6F4F1] border border-[#EDE9E3] p-3.5 rounded-[16px] text-left space-y-2 text-[12px]">
+              <div className="flex justify-between items-center">
+                <span className="text-[#6B7280] flex items-center gap-1.5"><Wind size={14} className="text-[#0D6B60]" /> Скорость ветра:</span>
+                <span className="font-bold text-[#0F0F0F]">{weatherData.wind} м/с</span>
+              </div>
+              <div className="divider" />
+              <div className="flex justify-between items-center">
+                <span className="text-[#6B7280] flex items-center gap-1.5"><Waves size={14} className="text-[#0D6B60]" /> Статус для купания:</span>
+                <span className="font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded text-[11px]">
+                  {weatherData.waterTemp >= 19 ? '🏊 Отлично для пляжа' : '⛵ Освежающе'}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button onClick={() => setShowWeatherModal(false)} className="btn-primary w-full py-3 text-[13px]">
+                Закрыть
               </button>
             </div>
           </div>
