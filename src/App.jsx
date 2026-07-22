@@ -246,7 +246,23 @@ const StatusBadge = ({ status }) => (
 /* ═══════════════════════════════════════════════════════════════
    ADMIN PANEL
 ═══════════════════════════════════════════════════════════════ */
-function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = [], setHistory }) {
+function AdminPanel({
+  onExit,
+  rooms,
+  setRooms,
+  menuList,
+  setMenuList,
+  history = [],
+  setHistory,
+  tgToken,
+  setTgToken,
+  tgChat,
+  setTgChat,
+  adminPass,
+  setAdminPass,
+  reviewsList,
+  setReviewsList
+}) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
   const [passErr, setPassErr] = useState('');
@@ -259,13 +275,10 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
   const [resetMsg, setResetMsg]             = useState('');
 
   // Настройки Telegram & Пароля
-  const [tgToken, setTgToken] = useState(() => localStorage.getItem('ak_tg_token') || '');
-  const [tgChat, setTgChat]   = useState(() => localStorage.getItem('ak_tg_chat') || '');
   const [tgStatus, setTgStatus] = useState('');
   const [newPassInput, setNewPassInput] = useState('');
   const [newPassConfirm, setNewPassConfirm] = useState('');
   const [passStatus, setPassStatus] = useState('');
-  const [adminPass, setAdminPass] = useState(() => localStorage.getItem('ak_admin_pass') || ADMIN_PASS);
 
   // Настройки Wi-Fi
   const [wifiSsid, setWifiSsid] = useState(() => localStorage.getItem('ak_wifi_ssid') || 'Aikol_Guest_WiFi');
@@ -273,44 +286,6 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
   const [wifiStatus, setWifiStatus] = useState('');
   const [wifiCopied, setWifiCopied] = useState(false);
   const [showWifiModal, setShowWifiModal] = useState(false);
-
-  // Отзывы и Оценка
-  const [ratingStars, setRatingStars] = useState(5);
-  const [ratingComment, setRatingComment] = useState('');
-  const [feedbackSent, setFeedbackSent] = useState(false);
-  const [reviewsList, setReviewsList] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('ak_reviews') || '[]'); } catch(e) { return []; }
-  });
-
-  const handleSendFeedback = async (e, roomNo) => {
-    e.preventDefault();
-    const newReview = {
-      id: `rev_${Date.now()}`,
-      guest: guestName || 'Гость',
-      phone: guestPhone || '—',
-      roomNo: roomNo || activeRoom?.roomNo || '—',
-      stars: ratingStars,
-      comment: ratingComment,
-      date: new Date().toLocaleDateString('ru-RU')
-    };
-
-    const updatedReviews = [newReview, ...reviewsList];
-    setReviewsList(updatedReviews);
-    try { localStorage.setItem('ak_reviews', JSON.stringify(updatedReviews)); } catch(e){}
-    setFeedbackSent(true);
-
-    try {
-      await supabase.from('orders').insert([{
-        id: newReview.id,
-        status: 'review',
-        payload: newReview
-      }]);
-    } catch(e){}
-
-    const starsStr = '⭐'.repeat(ratingStars);
-    const tgMsg = `⭐ <b>НОВЫЙ ОТЗЫВ О ГОСТИНИЦЕ «АЙКӨЛ»!</b>\n\n<b>Оценка:</b> ${starsStr} (${ratingStars}/5)\n<b>Гость:</b> ${guestName || 'Гость'}\n<b>Комната:</b> № ${roomNo || activeRoom?.roomNo || '—'}\n<b>Телефон:</b> ${guestPhone || 'Не указан'}\n\n<b>Отзыв:</b>\n"${ratingComment || 'Без комментария'}"`;
-    sendTelegramNotification(tgMsg);
-  };
 
   // Сбрасываем пароли при открытии панели — чтобы браузер не заполнял их автоматически
   useEffect(() => {
@@ -1386,6 +1361,47 @@ export default function App() {
   const [history, setHistory]     = useState(() => getLS('ak_history', '[]'));
   const [activeRoom, setActiveRoom] = useState(() => getLS('ak_active_room', 'null'));
 
+  // Глобальные состояния Telegram, Пароля и Отзывов
+  const [tgToken, setTgToken] = useState(() => localStorage.getItem('ak_tg_token') || '');
+  const [tgChat, setTgChat]   = useState(() => localStorage.getItem('ak_tg_chat') || '');
+  const [adminPass, setAdminPass] = useState(() => localStorage.getItem('ak_admin_pass') || ADMIN_PASS);
+  const [reviewsList, setReviewsList] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ak_reviews') || '[]'); } catch(e) { return []; }
+  });
+  const [ratingStars, setRatingStars] = useState(5);
+  const [ratingComment, setRatingComment] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const handleSendFeedback = async (e, roomNo) => {
+    e.preventDefault();
+    const newReview = {
+      id: `rev_${Date.now()}`,
+      guest: guestName || 'Гость',
+      phone: guestPhone || '—',
+      roomNo: roomNo || activeRoom?.roomNo || '—',
+      stars: ratingStars,
+      comment: ratingComment,
+      date: new Date().toLocaleDateString('ru-RU')
+    };
+
+    const updatedReviews = [newReview, ...reviewsList];
+    setReviewsList(updatedReviews);
+    try { localStorage.setItem('ak_reviews', JSON.stringify(updatedReviews)); } catch(e){}
+    setFeedbackSent(true);
+
+    try {
+      await supabase.from('orders').insert([{
+        id: newReview.id,
+        status: 'review',
+        payload: newReview
+      }]);
+    } catch(e){}
+
+    const starsStr = '⭐'.repeat(ratingStars);
+    const tgMsg = `⭐ <b>НОВЫЙ ОТЗЫВ О ГОСТИНИЦЕ «АЙКӨЛ»!</b>\n\n<b>Оценка:</b> ${starsStr} (${ratingStars}/5)\n<b>Гость:</b> ${guestName || 'Гость'}\n<b>Комната:</b> № ${roomNo || activeRoom?.roomNo || '—'}\n<b>Телефон:</b> ${guestPhone || 'Не указан'}\n\n<b>Отзыв:</b>\n"${ratingComment || 'Без комментария'}"`;
+    sendTelegramNotification(tgMsg);
+  };
+
   // Динамические номера и меню из localStorage
   // При загрузке добавляем priceTiers и images если в кеше их нет
   const [rooms, setRooms] = useState(() => {
@@ -1961,6 +1977,14 @@ export default function App() {
       }} 
       history={history}
       setHistory={setHistory}
+      tgToken={tgToken}
+      setTgToken={setTgToken}
+      tgChat={tgChat}
+      setTgChat={setTgChat}
+      adminPass={adminPass}
+      setAdminPass={setAdminPass}
+      reviewsList={reviewsList}
+      setReviewsList={setReviewsList}
     />
   );
 
