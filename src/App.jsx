@@ -200,6 +200,18 @@ const INITIAL_MENU = [
   },
 ];
 
+const getPerksArray = (p) => {
+  if (Array.isArray(p)) return p;
+  if (typeof p === 'string' && p.trim()) return p.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+};
+
+const getIngredientsArray = (ing) => {
+  if (Array.isArray(ing)) return ing;
+  if (typeof ing === 'string' && ing.trim()) return ing.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+};
+
 const Loader = () => <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />;
 
 const getLS = (k, fallback) => {
@@ -750,7 +762,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                       setEditingRoom(r); 
                       const imgs = r.images && r.images.length > 0 ? r.images : (r.img ? [r.img] : []);
                       const rawPrice = String(r.price || '').replace(/\D/g, '');
-                      setRoomForm({ ...r, price: rawPrice, img: r.img || imgs[0] || '', images: imgs, perks: r.perks?.join(', ') || '' }); 
+                      setRoomForm({ ...r, price: rawPrice, img: r.img || imgs[0] || '', images: imgs, perks: getPerksArray(r.perks).join(', ') }); 
                     }} className="p-2 border rounded-lg text-[#6B7280] hover:bg-[#F6F4F1]">✏️</button>
                     <button onClick={() => handleDeleteRoom(r.id)} className="p-2 border rounded-lg text-red-400 hover:bg-red-50">🗑</button>
                   </div>
@@ -872,7 +884,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
                     <button onClick={() => { 
                       setEditingDish(m); 
                       const imgs = m.images && m.images.length > 0 ? m.images : (m.img ? [m.img] : []);
-                      setDishForm({ ...m, img: m.img || imgs[0] || '', images: imgs, ingredients: m.ingredients?.join(', ') || '' }); 
+                      setDishForm({ ...m, img: m.img || imgs[0] || '', images: imgs, ingredients: getIngredientsArray(m.ingredients).join(', ') }); 
                     }} className="p-2 border rounded-lg text-[#6B7280] hover:bg-[#F6F4F1]">✏️</button>
                     <button onClick={() => handleDeleteDish(m.id)} className="p-2 border rounded-lg text-red-400 hover:bg-red-50">🗑</button>
                   </div>
@@ -1475,15 +1487,25 @@ export default function App() {
           // Синхронизация списка номеров
           const roomsRow = data.find(d => d.id === 'app_rooms');
           if (roomsRow && roomsRow.payload && Array.isArray(roomsRow.payload.rooms)) {
-            localStorage.setItem('ak_custom_rooms', JSON.stringify(roomsRow.payload.rooms));
-            setRooms(roomsRow.payload.rooms);
+            const normalizedRooms = roomsRow.payload.rooms.map(r => ({
+              ...r,
+              perks: getPerksArray(r.perks),
+              images: Array.isArray(r.images) && r.images.length > 0 ? r.images : (r.img ? [r.img] : [])
+            }));
+            localStorage.setItem('ak_custom_rooms', JSON.stringify(normalizedRooms));
+            setRooms(normalizedRooms);
           }
 
           // Синхронизация списка блюд
           const menuRow = data.find(d => d.id === 'app_menu');
           if (menuRow && menuRow.payload && Array.isArray(menuRow.payload.menu)) {
-            localStorage.setItem('ak_custom_menu', JSON.stringify(menuRow.payload.menu));
-            setMenuList(menuRow.payload.menu);
+            const normalizedMenu = menuRow.payload.menu.map(m => ({
+              ...m,
+              ingredients: getIngredientsArray(m.ingredients),
+              images: Array.isArray(m.images) && m.images.length > 0 ? m.images : (m.img ? [m.img] : [])
+            }));
+            localStorage.setItem('ak_custom_menu', JSON.stringify(normalizedMenu));
+            setMenuList(normalizedMenu);
           }
 
           // Синхронизация отзывов
@@ -2098,7 +2120,7 @@ export default function App() {
           <div className="space-y-2.5">
             <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider">Удобства</p>
             <div className="grid grid-cols-2 gap-2">
-              {viewRoom.perks.map(p => (
+              {getPerksArray(viewRoom.perks).map(p => (
                 <div key={p} className="bg-white border border-[#EDE9E3] rounded-[12px] px-3 py-2.5 flex items-center gap-2.5">
                   <span className="text-[#0D6B60]">{getPerkIcon(p)}</span>
                   <span className="text-[12.5px] font-medium text-[#0F0F0F]">{p}</span>
@@ -2327,20 +2349,24 @@ export default function App() {
                       <p className="text-[12px] text-[#6B7280] mt-1 leading-relaxed line-clamp-2">{dish.desc}</p>
 
                       {/* Ингредиенты на карточке */}
-                      {dish.ingredients && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {dish.ingredients.slice(0, 3).map((ing, idx) => (
-                            <span key={idx} className="text-[10px] bg-[#F6F4F1] text-[#6B7280] px-2 py-0.5 rounded-md border border-[#EDE9E3]">
-                              {ing}
-                            </span>
-                          ))}
-                          {dish.ingredients.length > 3 && (
-                            <span className="text-[10px] bg-[#F6F4F1] text-[#0D6B60] font-bold px-1.5 py-0.5 rounded-md">
-                              +{dish.ingredients.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {(() => {
+                        const ings = getIngredientsArray(dish.ingredients);
+                        if (ings.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {ings.slice(0, 3).map((ing, idx) => (
+                              <span key={idx} className="text-[10px] bg-[#F6F4F1] text-[#6B7280] px-2 py-0.5 rounded-md border border-[#EDE9E3]">
+                                {ing}
+                              </span>
+                            ))}
+                            {ings.length > 3 && (
+                              <span className="text-[10px] bg-[#F6F4F1] text-[#0D6B60] font-bold px-1.5 py-0.5 rounded-md">
+                                +{ings.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {activeRoom ? (
@@ -2430,18 +2456,22 @@ export default function App() {
                     </div>
 
                     {/* Секция с Ингредиентами в описании */}
-                    {viewDish.ingredients && (
-                      <div className="space-y-2">
-                        <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Состав и ингредиенты</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {viewDish.ingredients.map((ing, idx) => (
-                            <span key={idx} className="text-[11.5px] bg-[#E0F4F1] text-[#0D6B60] font-medium px-2.5 py-1 rounded-lg border border-[#C7EBE6] flex items-center gap-1">
-                              • {ing}
-                            </span>
-                          ))}
+                    {(() => {
+                      const ings = getIngredientsArray(viewDish.ingredients);
+                      if (ings.length === 0) return null;
+                      return (
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Состав и ингредиенты</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {ings.map((ing, idx) => (
+                              <span key={idx} className="text-[11.5px] bg-[#E0F4F1] text-[#0D6B60] font-medium px-2.5 py-1 rounded-lg border border-[#C7EBE6] flex items-center gap-1">
+                                • {ing}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {activeRoom ? (
                       <button 
@@ -2633,7 +2663,7 @@ export default function App() {
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1.5">
-                        {rm.perks?.map(p => (
+                        {getPerksArray(rm.perks).map(p => (
                           <span key={p} className="chip flex items-center gap-1">{getPerkIcon(p)}{p}</span>
                         ))}
                       </div>
@@ -2846,7 +2876,7 @@ export default function App() {
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1.5">
-                  {r.perks.map(p => <span key={p} className="chip flex items-center gap-1">{getPerkIcon(p)}{p}</span>)}
+                  {getPerksArray(r.perks).map(p => <span key={p} className="chip flex items-center gap-1">{getPerkIcon(p)}{p}</span>)}
                 </div>
               </div>
             </div>
