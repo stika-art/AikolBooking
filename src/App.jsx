@@ -765,7 +765,7 @@ function AdminPanel({
     : orders.filter(o => o.type === filter);
 
   if (!authed) return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
       <div className="welcome-card w-full max-w-sm p-8 space-y-6 animate-scale">
         <button onClick={onExit} className="flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#0F0F0F] transition-colors">
           <ArrowLeft size={15} strokeWidth={2.5} /> Назад
@@ -2548,7 +2548,7 @@ export default function App() {
 
   /* ─── WELCOME ───────────────────────────────────────────────── */
   if (step === 'welcome') return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
       <div className="welcome-card w-full max-w-sm p-7 sm:p-9 text-center space-y-6 animate-up">
         
         {/* Переключатель языка / Language Selector */}
@@ -2613,7 +2613,7 @@ export default function App() {
 
   /* ─── NAME & PHONE ────────────────────────────────────────────── */
   if (step === 'name') return (
-    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
       <div className="welcome-card w-full max-w-sm p-8 sm:p-10 space-y-6 animate-scale">
         <button onClick={() => setStep('welcome')} className="flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#0F0F0F] transition-colors">
           <ArrowLeft size={15} strokeWidth={2.5} /> {lang === 'en' ? 'Back' : lang === 'kg' ? 'Артка' : 'Назад'}
@@ -3112,8 +3112,8 @@ export default function App() {
 
   /* ─── ROOMS ─────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen welcome-bg flex justify-center">
+      <div className="w-full max-w-md bg-[#FAFAF8] min-h-screen shadow-2xl border-x border-[#EDE9E3]/50">
 
         {/* Top Bar */}
         <div className="bg-white border-b border-[#EDE9E3] px-5 py-4 flex items-center justify-between sticky top-0 z-30">

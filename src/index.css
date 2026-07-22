@@ -31,15 +31,26 @@
   --teal-l: #E0F4F1;
 }
 
-/* ─── Premium Welcome Card ──────────────────────────────────── */
+/* ─── Premium Issyk-Kul Wallpaper Background ──────────────── */
+.welcome-bg {
+  background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(13, 107, 96, 0.35)), url('/issyk_kul_bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* ─── Premium Glassmorphism Welcome Card ─────────────────────── */
 .welcome-card {
-  background: #FFFFFF;
-  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
-    0 1px 0 rgba(255,255,255,0.8) inset,
-    0 24px 56px -12px rgba(0,0,0,0.10),
-    0 6px 20px -4px rgba(0,0,0,0.06);
-  border: 1px solid #EDE9E3;
+    0 24px 64px -12px rgba(0, 20, 40, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 10px 30px -5px rgba(0, 0, 0, 0.15);
 }
 
 /* ─── Premium Room Card ─────────────────────────────────────── */
