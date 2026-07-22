@@ -290,6 +290,78 @@ const isOrderInDateRange = (o, startDateStr, endDateStr) => {
   return true;
 };
 
+const TRANSLATIONS = {
+  ru: {
+    welcome: 'Добро пожаловать',
+    sub: 'в гостиницу «Айкөл»',
+    desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.',
+    location: 'Балыкчы, Иссык-Куль',
+    rating: 'Рейтинг 4.9',
+    safe: 'Безопасно',
+    rest: 'Ресторан',
+    next: 'Далее',
+    guestData: 'Данные гостя',
+    guestDesc: 'Администратор свяжется с вами для подтверждения бронирования.',
+    nameLabel: 'Ваше имя',
+    namePlaceholder: 'Иван Иванов',
+    phoneLabel: 'Номер телефона',
+    confirmBtn: 'Подтвердить и продолжить',
+    roomsTitle: 'Номера гостиницы',
+    menuBtn: '🍕 Меню ресторана',
+    wifiBtn: '📶 Wi-Fi в отеле',
+    bookBtn: 'Забронировать',
+    reviewsTitle: 'Отзывы гостей',
+    leaveReviewBtn: '✍️ Оставить отзыв',
+    myBooking: 'Моё бронирование',
+  },
+  kg: {
+    welcome: 'Кош келиңиздер',
+    sub: '«Айкөл» мейманканасына',
+    desc: 'Ысык-Көлдүн жээгиндеги жайлуулук, жогорку комфорт жана мыкты кызмат.',
+    location: 'Балыкчы, Ысык-Көл',
+    rating: 'Рейтинг 4.9',
+    safe: 'Коопсуз',
+    rest: 'Ресторан',
+    next: 'Улантуу',
+    guestData: 'Коноктун маалыматы',
+    guestDesc: 'Администратор ээлөөнү ырастоо үчүн сиз менен байланышат.',
+    nameLabel: 'Сиздин атыңыз',
+    namePlaceholder: 'Асан Усонов',
+    phoneLabel: 'Телефон номериңиз',
+    confirmBtn: 'Ырастоо жана улантуу',
+    roomsTitle: 'Мейманкана бөлмөлөрү',
+    menuBtn: '🍕 Ресторан менюсу',
+    wifiBtn: '📶 Мейманкана Wi-Fi',
+    bookBtn: 'Бөлмөнү ээлөө',
+    reviewsTitle: 'Коноктордун пикирлери',
+    leaveReviewBtn: '✍️ Пикир калтыруу',
+    myBooking: 'Менин ээлөөм',
+  },
+  en: {
+    welcome: 'Welcome',
+    sub: 'to "Aikol" Hotel',
+    desc: 'Cozy, premium comfort and faultless service on the shore of Lake Issyk-Kul.',
+    location: 'Balykchy, Issyk-Kul',
+    rating: 'Rating 4.9',
+    safe: 'Safe',
+    rest: 'Restaurant',
+    next: 'Next',
+    guestData: 'Guest Information',
+    guestDesc: 'The manager will contact you to confirm your reservation.',
+    nameLabel: 'Your Full Name',
+    namePlaceholder: 'John Doe',
+    phoneLabel: 'Phone Number',
+    confirmBtn: 'Confirm and Continue',
+    roomsTitle: 'Hotel Rooms',
+    menuBtn: '🍕 Restaurant Menu',
+    wifiBtn: '📶 Hotel Wi-Fi',
+    bookBtn: 'Book Now',
+    reviewsTitle: 'Guest Reviews',
+    leaveReviewBtn: '✍️ Leave a Review',
+    myBooking: 'My Reservation',
+  }
+};
+
 const Loader = () => <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />;
 
 const getLS = (k, fallback) => {
@@ -1571,6 +1643,8 @@ function AdminPanel({
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
   const [step, setStep]           = useState('welcome');
+  const [lang, setLang]           = useState(() => localStorage.getItem('ak_lang') || 'ru');
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.ru;
   const [showAdmin, setShowAdmin] = useState(false);
   const [inputName, setInputName] = useState(() => localStorage.getItem('ak_name') || '');
   const [guestName, setGuestName] = useState(() => localStorage.getItem('ak_name') || '');
@@ -2212,34 +2286,63 @@ export default function App() {
   /* ─── WELCOME ───────────────────────────────────────────────── */
   if (step === 'welcome') return (
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
-      <div className="welcome-card w-full max-w-sm p-8 sm:p-10 text-center space-y-7 animate-up">
+      <div className="welcome-card w-full max-w-sm p-7 sm:p-9 text-center space-y-6 animate-up">
+        
+        {/* Переключатель языка / Language Selector */}
+        <div className="flex items-center justify-center gap-1 p-1 bg-[#F6F4F1] border border-[#EDE9E3] rounded-full max-w-[275px] mx-auto shadow-inner">
+          <button
+            type="button"
+            onClick={() => { setLang('kg'); localStorage.setItem('ak_lang', 'kg'); }}
+            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+              lang === 'kg' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+            }`}>
+            <span>🇰🇬</span> Кыргызча
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLang('ru'); localStorage.setItem('ak_lang', 'ru'); }}
+            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+              lang === 'ru' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+            }`}>
+            <span>🇷🇺</span> Русский
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLang('en'); localStorage.setItem('ak_lang', 'en'); }}
+            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
+              lang === 'en' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+            }`}>
+            <span>🇬🇧</span> English
+          </button>
+        </div>
+
         <div className="mx-auto w-[72px] h-[72px] rounded-[22px] bg-[#0D6B60] flex items-center justify-center shadow-[0_12px_32px_rgba(13,107,96,0.35)] cursor-pointer select-none"
           onClick={handleLogoTap}>
           <span className="font-display text-white font-bold text-3xl leading-none">А</span>
         </div>
-        <div><span className="badge-gold"><MapPin size={11} strokeWidth={2.5} /> Балыкчы, Иссык-Куль</span></div>
+        <div><span className="badge-gold"><MapPin size={11} strokeWidth={2.5} /> {t.location}</span></div>
         <div className="space-y-1">
-          <h1 className="font-display text-[28px] sm:text-[32px] font-semibold text-[#0F0F0F] leading-[1.2]">Добро пожаловать</h1>
-          <p className="font-display text-[18px] text-[#0D6B60] italic font-medium leading-snug">в гостиницу «Айкөл»</p>
+          <h1 className="font-display text-[26px] sm:text-[30px] font-semibold text-[#0F0F0F] leading-[1.2]">{t.welcome}</h1>
+          <p className="font-display text-[17px] text-[#0D6B60] italic font-medium leading-snug">{t.sub}</p>
         </div>
-        <p className="text-[13.5px] text-[#6B7280] leading-relaxed max-w-[260px] mx-auto">
-          Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.
+        <p className="text-[13px] text-[#6B7280] leading-relaxed max-w-[260px] mx-auto">
+          {t.desc}
         </p>
         <div className="flex items-center justify-center gap-3">
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
-            <Star size={13} className="text-[#B8963A] fill-[#B8963A]" strokeWidth={1} /> Рейтинг 4.9
+            <Star size={13} className="text-[#B8963A] fill-[#B8963A]" strokeWidth={1} /> {t.rating}
           </div>
           <span className="w-px h-4 bg-[#E8E4DF]" />
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
-            <ShieldCheck size={13} className="text-[#0D6B60]" strokeWidth={2} /> Безопасно
+            <ShieldCheck size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.safe}
           </div>
           <span className="w-px h-4 bg-[#E8E4DF]" />
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
-            <Utensils size={13} className="text-[#0D6B60]" strokeWidth={2} /> Ресторан
+            <Utensils size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.rest}
           </div>
         </div>
         <button onClick={goToRooms} className="btn-primary w-full flex items-center justify-center gap-2.5 group">
-          Далее <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          {t.next} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
     </div>
@@ -2250,26 +2353,26 @@ export default function App() {
     <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-4">
       <div className="welcome-card w-full max-w-sm p-8 sm:p-10 space-y-6 animate-scale">
         <button onClick={() => setStep('welcome')} className="flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#0F0F0F] transition-colors">
-          <ArrowLeft size={15} strokeWidth={2.5} /> Назад
+          <ArrowLeft size={15} strokeWidth={2.5} /> {lang === 'en' ? 'Back' : lang === 'kg' ? 'Артка' : 'Назад'}
         </button>
         <div className="space-y-2">
           <div className="w-12 h-12 rounded-[16px] bg-[#E0F4F1] flex items-center justify-center">
             <User size={22} className="text-[#0D6B60]" strokeWidth={2} />
           </div>
-          <h2 className="font-display text-2xl font-semibold text-[#0F0F0F]">Данные гостя</h2>
-          <p className="text-[13px] text-[#6B7280] leading-relaxed">Администратор свяжется с вами для подтверждения бронирования.</p>
+          <h2 className="font-display text-2xl font-semibold text-[#0F0F0F]">{t.guestData}</h2>
+          <p className="text-[13px] text-[#6B7280] leading-relaxed">{t.guestDesc}</p>
         </div>
         <form onSubmit={submitName} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider">Ваше имя</label>
-            <input className={`input-soft ${nameError ? 'error' : ''}`} placeholder="Например: Максат"
+            <label className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider">{t.nameLabel}</label>
+            <input className={`input-soft ${nameError ? 'error' : ''}`} placeholder={t.namePlaceholder}
               value={inputName} onChange={e => { setInputName(e.target.value); setNameError(''); }} autoFocus />
             {nameError && <div className="flex items-center gap-1.5 text-[12px] text-red-500 font-medium"><AlertCircle size={14} />{nameError}</div>}
           </div>
 
           <div className="space-y-2">
             <label className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
-              <Phone size={13} className="text-[#0D6B60]" /> Номер телефона
+              <Phone size={13} className="text-[#0D6B60]" /> {t.phoneLabel}
             </label>
             <input className={`input-soft ${phoneError ? 'error' : ''}`} placeholder="0555 00-00-00" type="tel"
               value={inputPhone} onChange={e => { setInputPhone(e.target.value); setPhoneError(''); }} />
@@ -2278,7 +2381,7 @@ export default function App() {
 
           <button type="submit" disabled={inputName.trim().length < 2 || inputPhone.trim().length < 6 || loading}
             className="btn-primary w-full flex items-center justify-center gap-2">
-            {loading ? <Loader /> : <>Продолжить <ArrowRight size={16} /></>}
+            {loading ? <Loader /> : <>{t.confirmBtn} <ArrowRight size={16} /></>}
           </button>
         </form>
       </div>
@@ -2777,8 +2880,16 @@ export default function App() {
                 </span>
               )}
             </button>
+            <select
+              value={lang}
+              onChange={e => { setLang(e.target.value); localStorage.setItem('ak_lang', e.target.value); }}
+              className="bg-[#F6F4F1] border border-[#EDE9E3] rounded-[10px] text-[11px] font-bold px-1.5 h-9 text-[#0D6B60] outline-none cursor-pointer">
+              <option value="kg">🇰🇬 KG</option>
+              <option value="ru">🇷🇺 RU</option>
+              <option value="en">🇬🇧 EN</option>
+            </select>
             <button onClick={() => { setInputName(guestName); setInputPhone(guestPhone); setStep('name'); }}
-              className="text-[12px] text-[#6B7280] border border-[#E8E4DF] w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F6F4F1] transition-all">
+              className="text-[12px] text-[#6B7280] border border-[#E8E4DF] w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F6F4F1] transition-all">
               ✏️
             </button>
           </div>
