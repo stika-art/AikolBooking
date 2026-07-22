@@ -272,9 +272,13 @@ const parseOrderDate = (o) => {
   return null;
 };
 
-const isOrderInDateRange = (o, startDateStr, endDateStr) => {
-  if (!startDateStr && !endDateStr) return true;
+const isOrderInDateRange = (o, startDateStr, endDateStr, clearedAtIso) => {
   const orderDate = parseOrderDate(o);
+  if (clearedAtIso && orderDate) {
+    const clearedDate = new Date(clearedAtIso);
+    if (orderDate <= clearedDate) return false;
+  }
+  if (!startDateStr && !endDateStr) return true;
   if (!orderDate) return true;
 
   if (startDateStr) {
@@ -725,27 +729,28 @@ function AdminPanel({
   };
 
   const handleClearReports = async () => {
-    if (!window.confirm('⚠️ Вы действительно хотите сбросить всю финансовую отчётность и обнулить историю доходов?\n\nСуммы общего дохода, броней и кухни будут сброшены на 0 сом. Это действие невозможно отменить.')) {
+    if (!window.confirm('📊 Сбросить показатели финансовой отчётности на 0 сом?\n\nВсе брони и заказы останутся активными для гостей и в списке заказов! Сбросятся только цифры в отчёте.')) {
       return;
     }
-    const systemIds = ['app_rooms', 'app_menu', 'app_admin_pass', 'tg_config'];
-    const idsToDelete = history
-      .filter(o => !systemIds.includes(o.id) && !o.id?.startsWith('rev_') && o.status !== 'review')
-      .map(o => o.id);
-
+    const nowIso = new Date().toISOString();
+    setReportClearedAt(nowIso);
+    localStorage.setItem('ak_report_cleared_at', nowIso);
     try {
-      if (idsToDelete.length > 0) {
-        await supabase.from('orders').delete().in('id', idsToDelete);
-      }
-      setHistory([]);
-      localStorage.setItem('ak_history', '[]');
-      alert('✅ Вся финансовая отчётность и история заказов успешно сброшена на 0!');
+      await supabase.from('orders').upsert([{ id: 'app_report_cleared_at', status: 'system', payload: { clearedAt: nowIso } }]);
+      alert('✅ Отчётность обнулена! Все текущие брони и заказы остались активными.');
     } catch (err) {
       console.error('Ошибка сброса отчётности:', err);
-      setHistory([]);
-      localStorage.setItem('ak_history', '[]');
-      alert('✅ Отчётность сброшена на 0!');
+      alert('✅ Отчётность обнулена!');
     }
+  };
+
+  const handleRestoreReports = async () => {
+    if (!window.confirm('Восстановить отчётность за всё время?')) return;
+    setReportClearedAt(null);
+    localStorage.removeItem('ak_report_cleared_at');
+    try {
+      await supabase.from('orders').delete().eq('id', 'app_report_cleared_at');
+    } catch(e){}
   };
 
   const filtered = filter === 'all'
@@ -1291,13 +1296,20 @@ function AdminPanel({
 
         {/* ── ВКЛАДКА: ОТЧЁТНОСТЬ & АНАЛИТИКА ── */}
         {filter === 'reports' && (() => {
-          const reportFilteredHistory = history.filter(o => isOrderInDateRange(o, reportStartDate, reportEndDate));
+          const reportFilteredHistory = history.filter(o => isOrderInDateRange(o, reportStartDate, reportEndDate, reportClearedAt));
           return (
             <div className="px-4 py-4 space-y-4 animate-up">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="font-display text-lg font-bold text-[#0F0F0F]">📊 Финансовая отчётность</h3>
-                  <p className="text-[12px] text-[#6B7280]">Сводный анализ всех доходов, броней и заказов</p>
+                  <p className="text-[12px] text-[#6B7280]">
+                    Сводный анализ всех доходов, броней и заказов
+                    {reportClearedAt && (
+                      <span className="block text-[11px] text-amber-600 font-medium mt-0.5">
+                        ⏳ Отчётность сброшена в 0 ({new Date(reportClearedAt).toLocaleDateString('ru-RU')} {new Date(reportClearedAt).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})})
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -1328,11 +1340,19 @@ function AdminPanel({
                     className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-[#0D6B60] border-[#C7EBE6] hover:bg-[#F0FAF8]">
                     📥 Скачать Excel / CSV
                   </button>
-                  <button
-                    onClick={handleClearReports}
-                    className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-semibold transition-colors">
-                    🗑️ Сбросить всё в 0
-                  </button>
+                  {reportClearedAt ? (
+                    <button
+                      onClick={handleRestoreReports}
+                      className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50 font-semibold transition-colors">
+                      ↩️ Восстановить всё
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleClearReports}
+                      className="btn-outline py-2 px-3 text-[12px] flex items-center gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 font-semibold transition-colors">
+                      🗑️ Сбросить всё в 0
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1755,6 +1775,7 @@ export default function App() {
   const [phoneError, setPhoneError] = useState('');
   const [loading, setLoading]     = useState(false);
   const [history, setHistory]     = useState(() => getLS('ak_history', '[]'));
+  const [reportClearedAt, setReportClearedAt] = useState(() => localStorage.getItem('ak_report_cleared_at') || null);
   const [myTokens, setMyTokens]   = useState(() => {
     try { return JSON.parse(localStorage.getItem('ak_my_tokens') || '[]'); } catch(e) { return []; }
   });
@@ -1957,8 +1978,19 @@ export default function App() {
             setReviewsList(revs);
           }
 
+          // Синхронизация сброса отчётности
+          const clearedRow = data.find(d => d.id === 'app_report_cleared_at');
+          if (clearedRow && clearedRow.payload && clearedRow.payload.clearedAt) {
+            localStorage.setItem('ak_report_cleared_at', clearedRow.payload.clearedAt);
+            setReportClearedAt(clearedRow.payload.clearedAt);
+          } else if (clearedRow === undefined && localStorage.getItem('ak_report_cleared_at')) {
+            // Если в Supabase запись была удалена
+            localStorage.removeItem('ak_report_cleared_at');
+            setReportClearedAt(null);
+          }
+
           // История заказов (исключая системные записи и отзывы)
-          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu'];
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at'];
           const formatted = data
             .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && !d.id?.startsWith('rev_'))
             .map(d => ({
