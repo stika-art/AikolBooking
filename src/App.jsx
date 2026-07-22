@@ -3294,33 +3294,33 @@ export default function App() {
       <div className="w-full max-w-md bg-[#FAFAF8] min-h-screen shadow-2xl border-x border-[#EDE9E3]/50">
 
         {/* Top Bar */}
-        <div className="bg-white border-b border-[#EDE9E3] px-5 py-4 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0D6B60] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+        <div className="bg-white border-b border-[#EDE9E3] px-3 py-3 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 shrink-0 rounded-xl bg-[#0D6B60] flex items-center justify-center text-white font-bold text-sm shadow-sm">
               {(guestName && guestName.length > 0 ? guestName[0] : 'Г').toUpperCase()}
             </div>
-            <div>
-              <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight">{guestName || 'Гость'}</p>
-              <p className="text-[11px] text-[#6B7280] flex items-center gap-1">
-                <Phone size={10} className="text-[#0D6B60]" /> {guestPhone || 'Не указан'}
+            <div className="min-w-0">
+              <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight truncate">{guestName || 'Гость'}</p>
+              <p className="text-[11px] text-[#6B7280] flex items-center gap-1 truncate">
+                <Phone size={10} className="text-[#0D6B60] shrink-0" /> {guestPhone || 'Не указан'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button onClick={() => setShowWeatherModal(true)}
               title="Погода и температура воды"
-              className="h-9 px-2.5 flex items-center justify-center gap-1 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
+              className="h-9 px-2 flex items-center justify-center gap-1 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
               <span>{weatherData.icon}</span>
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
               <span className="hidden sm:inline text-[10px] text-[#6B7280]">· 🌊 +{weatherData.waterTemp}°C</span>
             </button>
             <button onClick={() => setShowMenuScreen(true)}
               title="Ресторан и меню"
-              className="w-9 h-9 flex items-center justify-center border border-[#EDE9E3] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]">
+              className="w-9 h-9 shrink-0 flex items-center justify-center border border-[#EDE9E3] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]">
               <Utensils size={18} strokeWidth={2} />
             </button>
             <button onClick={() => setModal('history')}
-              className="relative w-9 h-9 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]">
+              className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]">
               <History size={18} strokeWidth={2} />
               {history.length > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] bg-[#0D6B60] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
@@ -3337,7 +3337,7 @@ export default function App() {
               <option value="en">🇬🇧 EN</option>
             </select>
             <button onClick={() => { setInputName(guestName); setInputPhone(guestPhone); setStep('name'); }}
-              className="text-[12px] text-[#6B7280] border border-[#E8E4DF] w-9 h-9 rounded-lg flex items-center justify-center hover:bg-[#F6F4F1] transition-all">
+              className="text-[12px] text-[#6B7280] border border-[#E8E4DF] w-9 h-9 shrink-0 rounded-lg flex items-center justify-center hover:bg-[#F6F4F1] transition-all">
               ✏️
             </button>
           </div>
