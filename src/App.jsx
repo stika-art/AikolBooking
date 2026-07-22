@@ -2637,12 +2637,12 @@ export default function App() {
       <div className="welcome-card w-full max-w-sm p-7 sm:p-9 text-center space-y-6 animate-up">
         
         {/* Переключатель языка / Language Selector */}
-        <div className="flex items-center justify-center gap-1 p-1 bg-[#F6F4F1] border border-[#EDE9E3] rounded-full max-w-[275px] mx-auto shadow-inner">
+        <div className="flex items-center justify-center gap-1 p-1 bg-white/40 backdrop-blur-md border border-white/60 rounded-full max-w-[275px] mx-auto shadow-sm">
           <button
             type="button"
             onClick={() => { setLang('kg'); localStorage.setItem('ak_lang', 'kg'); }}
             className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'kg' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+              lang === 'kg' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-[#374151] hover:text-[#0F0F0F]'
             }`}>
             <span>🇰🇬</span> Кыргызча
           </button>
@@ -2650,7 +2650,7 @@ export default function App() {
             type="button"
             onClick={() => { setLang('ru'); localStorage.setItem('ak_lang', 'ru'); }}
             className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'ru' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+              lang === 'ru' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-[#374151] hover:text-[#0F0F0F]'
             }`}>
             <span>🇷🇺</span> Русский
           </button>
@@ -2658,34 +2658,34 @@ export default function App() {
             type="button"
             onClick={() => { setLang('en'); localStorage.setItem('ak_lang', 'en'); }}
             className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'en' ? 'bg-[#0D6B60] text-white shadow-sm scale-105' : 'text-[#6B7280] hover:text-[#0F0F0F]'
+              lang === 'en' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-[#374151] hover:text-[#0F0F0F]'
             }`}>
             <span>🇬🇧</span> English
           </button>
         </div>
 
-        <div className="mx-auto w-[72px] h-[72px] rounded-[22px] bg-[#0D6B60] flex items-center justify-center shadow-[0_12px_32px_rgba(13,107,96,0.35)] cursor-pointer select-none"
+        <div className="mx-auto w-[72px] h-[72px] rounded-[22px] bg-[#0D6B60] flex items-center justify-center shadow-[0_12px_32px_rgba(13,107,96,0.4)] cursor-pointer select-none"
           onClick={handleLogoTap}>
           <span className="font-display text-white font-bold text-3xl leading-none">А</span>
         </div>
-        <div><span className="badge-gold"><MapPin size={11} strokeWidth={2.5} /> {hotelAddress || t.location}</span></div>
+        <div><span className="badge-gold bg-[#F5EDD4]/90 backdrop-blur-md shadow-sm"><MapPin size={11} strokeWidth={2.5} /> {hotelAddress || t.location}</span></div>
         <div className="space-y-1">
           <h1 className="font-display text-[26px] sm:text-[30px] font-semibold text-[#0F0F0F] leading-[1.2]">{t.welcome}</h1>
-          <p className="font-display text-[17px] text-[#0D6B60] italic font-medium leading-snug">{t.sub}</p>
+          <p className="font-display text-[17px] text-[#0D6B60] italic font-semibold leading-snug">{t.sub}</p>
         </div>
-        <p className="text-[13px] text-[#6B7280] leading-relaxed max-w-[260px] mx-auto">
+        <p className="text-[13px] text-[#374151] font-medium leading-relaxed max-w-[260px] mx-auto">
           {t.desc}
         </p>
-        <div className="flex items-center justify-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
+        <div className="flex items-center justify-center gap-3 bg-white/40 backdrop-blur-md border border-white/60 py-2.5 px-3 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
             <Star size={13} className="text-[#B8963A] fill-[#B8963A]" strokeWidth={1} /> {t.rating}
           </div>
-          <span className="w-px h-4 bg-[#E8E4DF]" />
-          <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
+          <span className="w-px h-4 bg-[#6B7280]/30" />
+          <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
             <ShieldCheck size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.safe}
           </div>
-          <span className="w-px h-4 bg-[#E8E4DF]" />
-          <div className="flex items-center gap-1.5 text-[11.5px] text-[#6B7280] font-medium">
+          <span className="w-px h-4 bg-[#6B7280]/30" />
+          <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
             <Utensils size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.rest}
           </div>
         </div>
