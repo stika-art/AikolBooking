@@ -40,18 +40,18 @@
   background-attachment: fixed;
 }
 
-/* ─── Premium Liquid Glass Card (Жидкое стекло) ─────────────── */
+/* ─── Premium Liquid Glass Card (Супер-размытое Жидкое стекло) ─── */
 .welcome-card {
-  background: rgba(255, 255, 255, 0.38) !important;
-  backdrop-filter: blur(35px) saturate(220%) contrast(105%) !important;
-  -webkit-backdrop-filter: blur(35px) saturate(220%) contrast(105%) !important;
+  background: rgba(255, 255, 255, 0.32) !important;
+  backdrop-filter: blur(60px) saturate(240%) contrast(108%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(240%) contrast(108%) !important;
   border-radius: 36px;
-  border: 1.5px solid rgba(255, 255, 255, 0.7) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.65) !important;
   box-shadow:
-    0 30px 80px -10px rgba(0, 15, 30, 0.45),
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.85),
-    inset 0 -1.5px 2px rgba(0, 0, 0, 0.15),
-    0 0 40px rgba(255, 255, 255, 0.25);
+    0 30px 90px -10px rgba(0, 15, 30, 0.5),
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.9),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2),
+    0 0 50px rgba(255, 255, 255, 0.3);
 }
 
 /* ─── Premium Room Card ─────────────────────────────────────── */

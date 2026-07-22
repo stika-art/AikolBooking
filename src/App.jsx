@@ -515,13 +515,16 @@ function AdminPanel({
   hotelAddress,
   setHotelAddress,
   welcomeBgUrl,
-  setWelcomeBgUrl
+  setWelcomeBgUrl,
+  welcomeTexts,
+  setWelcomeTexts
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
   const [passErr, setPassErr] = useState('');
   const [addressStatus, setAddressStatus] = useState('');
   const [bgStatus, setBgStatus] = useState('');
+  const [wtStatus, setWtStatus] = useState('');
 
   // Сброс пароля через Telegram
   const [showResetModal, setShowResetModal] = useState(false);
@@ -1374,6 +1377,72 @@ function AdminPanel({
               </form>
             </div>
 
+            {/* Редактор текстов приветственного экрана */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-4 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                <Sparkles size={16} className="text-[#0D6B60]" /> Тексты приветственного экрана
+              </h3>
+              <p className="text-[11.5px] text-[#6B7280]">
+                Настройте заголовок, подзаголовок и описание приветствия для каждого языка:
+              </p>
+              {[
+                { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.' } },
+                { code: 'kg', flag: '🇰🇬', label: 'Кыргызча', defaults: { welcome: 'Кош келиңиздер', sub: '«Айкөл» мейманканасына', desc: 'Ысык-Көлдүн жээгиндеги жайлуулук, жогорку комфорт жана мыкты кызмат.' } },
+                { code: 'en', flag: '🇬🇧', label: 'English', defaults: { welcome: 'Welcome', sub: 'to "Aikol" Hotel', desc: 'Cozy, premium comfort and faultless service on the shore of Lake Issyk-Kul.' } },
+              ].map(({ code, flag, label, defaults }) => {
+                const cur = (welcomeTexts && welcomeTexts[code]) || {};
+                return (
+                  <div key={code} className="border border-[#EDE9E3] rounded-[12px] p-3 space-y-2 bg-[#FAFAF8]">
+                    <div className="text-[12px] font-bold text-[#0F0F0F] flex items-center gap-1.5">{flag} {label}</div>
+                    {[
+                      { field: 'welcome', placeholder: defaults.welcome, label: 'Заголовок (H1)' },
+                      { field: 'sub',     placeholder: defaults.sub,     label: 'Подзаголовок (italic)' },
+                      { field: 'desc',    placeholder: defaults.desc,    label: 'Описание (серый текст)' },
+                    ].map(({ field, placeholder, label: fLabel }) => (
+                      <div key={field}>
+                        <label className="text-[10.5px] font-semibold text-[#6B7280] uppercase tracking-wide">{fLabel}</label>
+                        <input
+                          type="text"
+                          className="input-soft mt-0.5 text-[12px]"
+                          placeholder={placeholder}
+                          value={cur[field] || ''}
+                          onChange={e => {
+                            const updated = {
+                              ...(welcomeTexts || {}),
+                              [code]: { ...(welcomeTexts?.[code] || {}), [field]: e.target.value }
+                            };
+                            setWelcomeTexts(updated);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+              {wtStatus && (
+                <div className="text-[11px] p-2.5 rounded-lg border font-medium bg-green-50 text-green-700 border-green-200">
+                  {wtStatus}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={async () => {
+                  const texts = welcomeTexts || {};
+                  localStorage.setItem('ak_welcome_texts', JSON.stringify(texts));
+                  try {
+                    await supabase.from('orders').upsert([{ id: 'app_welcome_texts', status: 'system', payload: texts }]);
+                    setWtStatus('✅ Тексты приветствия сохранены на всех устройствах!');
+                  } catch(err) {
+                    setWtStatus('✅ Тексты сохранены локально!');
+                  }
+                  setTimeout(() => setWtStatus(''), 4000);
+                }}
+                className="btn-primary w-full py-2.5 text-[12px]"
+              >
+                Сохранить тексты приветствия
+              </button>
+            </div>
+
             {/* Смена пароля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -1889,6 +1958,9 @@ export default function App() {
   const [lang, setLang]           = useState(() => localStorage.getItem('ak_lang') || 'ru');
   const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
   const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
+  const [welcomeTexts, setWelcomeTexts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ak_welcome_texts') || 'null') || null; } catch(e) { return null; }
+  });
   const t = TRANSLATIONS[lang] || TRANSLATIONS.ru;
   const [showAdmin, setShowAdmin] = useState(false);
   const [inputName, setInputName] = useState(() => localStorage.getItem('ak_name') || '');
@@ -2163,8 +2235,15 @@ export default function App() {
             setWelcomeBgUrl(bgRow.payload.bgUrl);
           }
 
+          // Синхронизация кастомных текстов приветствия
+          const wtRow = data.find(d => d.id === 'app_welcome_texts');
+          if (wtRow && wtRow.payload) {
+            localStorage.setItem('ak_welcome_texts', JSON.stringify(wtRow.payload));
+            setWelcomeTexts(wtRow.payload);
+          }
+
           // История заказов (исключая системные записи и отзывы)
-          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg'];
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg', 'app_welcome_texts'];
           const formatted = data
             .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && !d.id?.startsWith('rev_'))
             .map(d => ({
@@ -2628,6 +2707,8 @@ export default function App() {
       setHotelAddress={setHotelAddress}
       welcomeBgUrl={welcomeBgUrl}
       setWelcomeBgUrl={setWelcomeBgUrl}
+      welcomeTexts={welcomeTexts}
+      setWelcomeTexts={setWelcomeTexts}
     />
   );
 
@@ -2670,11 +2751,15 @@ export default function App() {
         </div>
         <div><span className="badge-gold bg-[#F5EDD4]/90 backdrop-blur-md shadow-sm"><MapPin size={11} strokeWidth={2.5} /> {hotelAddress || t.location}</span></div>
         <div className="space-y-1">
-          <h1 className="font-display text-[26px] sm:text-[30px] font-semibold text-[#0F0F0F] leading-[1.2]">{t.welcome}</h1>
-          <p className="font-display text-[17px] text-[#0D6B60] italic font-semibold leading-snug">{t.sub}</p>
+          <h1 className="font-display text-[26px] sm:text-[30px] font-semibold text-[#0F0F0F] leading-[1.2]">
+            {welcomeTexts?.[lang]?.welcome || t.welcome}
+          </h1>
+          <p className="font-display text-[17px] text-[#0D6B60] italic font-semibold leading-snug">
+            {welcomeTexts?.[lang]?.sub || t.sub}
+          </p>
         </div>
         <p className="text-[13px] text-[#374151] font-medium leading-relaxed max-w-[260px] mx-auto">
-          {t.desc}
+          {welcomeTexts?.[lang]?.desc || t.desc}
         </p>
         <div className="flex items-center justify-center gap-3 bg-white/40 backdrop-blur-md border border-white/60 py-2.5 px-3 rounded-2xl shadow-sm">
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
