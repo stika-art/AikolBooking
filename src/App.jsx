@@ -513,12 +513,15 @@ function AdminPanel({
   reviewsList,
   setReviewsList,
   hotelAddress,
-  setHotelAddress
+  setHotelAddress,
+  welcomeBgUrl,
+  setWelcomeBgUrl
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
   const [passErr, setPassErr] = useState('');
   const [addressStatus, setAddressStatus] = useState('');
+  const [bgStatus, setBgStatus] = useState('');
 
   // Сброс пароля через Telegram
   const [showResetModal, setShowResetModal] = useState(false);
@@ -765,7 +768,7 @@ function AdminPanel({
     : orders.filter(o => o.type === filter);
 
   if (!authed) return (
-    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4" style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(13, 107, 96, 0.3)), url('${welcomeBgUrl}')` }}>
       <div className="welcome-card w-full max-w-sm p-8 space-y-6 animate-scale">
         <button onClick={onExit} className="flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#0F0F0F] transition-colors">
           <ArrowLeft size={15} strokeWidth={2.5} /> Назад
@@ -1299,6 +1302,78 @@ function AdminPanel({
               </form>
             </div>
 
+            {/* Настройка фоновых обоев Иссык-Куля */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                <Sparkles size={16} className="text-[#0D6B60]" /> Фоновые обои сайта (Иссык-Куль)
+              </h3>
+              <p className="text-[11.5px] text-[#6B7280]">
+                Выберите готовый вариант фона Иссык-Куля или вставьте ссылку на любую свою фотографию:
+              </p>
+
+              {/* Пресеты фонов */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { name: '🏔️ Естественный Иссык-Куль', url: '/issyk_kul_bg2.png' },
+                  { name: '🌄 Горы и озеро', url: '/issyk_kul_bg.png' },
+                  { name: '🌊 Лазурный пляж', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=85' },
+                  { name: '🌅 Закат на Иссык-Куле', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=85' }
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={async () => {
+                      if (typeof setWelcomeBgUrl === 'function') setWelcomeBgUrl(preset.url);
+                      localStorage.setItem('ak_welcome_bg', preset.url);
+                      try {
+                        await supabase.from('orders').upsert([{ id: 'app_welcome_bg', status: 'system', payload: { bgUrl: preset.url } }]);
+                        setBgStatus(`✅ Установлен фон: ${preset.name}`);
+                        setTimeout(() => setBgStatus(''), 4000);
+                      } catch(e){}
+                    }}
+                    className={`p-2 rounded-[12px] border text-[11px] font-bold text-left transition-all flex items-center gap-2 ${
+                      welcomeBgUrl === preset.url ? 'border-[#0D6B60] bg-[#E0F4F1] text-[#0D6B60]' : 'border-[#EDE9E3] bg-[#F6F4F1] hover:bg-[#E8E4DF] text-[#0F0F0F]'
+                    }`}>
+                    <span className="truncate">{preset.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!welcomeBgUrl.trim()) return;
+                const url = welcomeBgUrl.trim();
+                localStorage.setItem('ak_welcome_bg', url);
+                if (typeof setWelcomeBgUrl === 'function') setWelcomeBgUrl(url);
+                try {
+                  await supabase.from('orders').upsert([{ id: 'app_welcome_bg', status: 'system', payload: { bgUrl: url } }]);
+                  setBgStatus('✅ Своё фоновое фото сохранено на всех устройствах!');
+                  setTimeout(() => setBgStatus(''), 4000);
+                } catch(err){
+                  setBgStatus('✅ Фото сохранено локально!');
+                }
+              }} className="space-y-3 text-[12px] pt-1">
+                <div>
+                  <label className="font-semibold text-[#6B7280]">Или укажите свою ссылку на фото (URL)</label>
+                  <input
+                    type="text"
+                    className="input-soft mt-1 text-[12px]"
+                    placeholder="https://images.unsplash.com/..."
+                    value={welcomeBgUrl}
+                    onChange={e => setWelcomeBgUrl(e.target.value)}
+                  />
+                </div>
+                {bgStatus && (
+                  <div className="text-[11px] p-2.5 rounded-lg border font-medium bg-green-50 text-green-700 border-green-200">
+                    {bgStatus}
+                  </div>
+                )}
+                <button type="submit" className="btn-primary w-full py-2.5 text-[12px]">
+                  Сохранить своё фоновое фото
+                </button>
+              </form>
+            </div>
+
             {/* Смена пароля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -1813,6 +1888,7 @@ export default function App() {
   const [step, setStep]           = useState('welcome');
   const [lang, setLang]           = useState(() => localStorage.getItem('ak_lang') || 'ru');
   const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
+  const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
   const t = TRANSLATIONS[lang] || TRANSLATIONS.ru;
   const [showAdmin, setShowAdmin] = useState(false);
   const [inputName, setInputName] = useState(() => localStorage.getItem('ak_name') || '');
@@ -2080,8 +2156,15 @@ export default function App() {
             setReportClearedAt(null);
           }
 
+          // Синхронизация фоновых обоев
+          const bgRow = data.find(d => d.id === 'app_welcome_bg');
+          if (bgRow && bgRow.payload && bgRow.payload.bgUrl) {
+            localStorage.setItem('ak_welcome_bg', bgRow.payload.bgUrl);
+            setWelcomeBgUrl(bgRow.payload.bgUrl);
+          }
+
           // История заказов (исключая системные записи и отзывы)
-          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at'];
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg'];
           const formatted = data
             .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && !d.id?.startsWith('rev_'))
             .map(d => ({
@@ -2543,12 +2626,14 @@ export default function App() {
       setReviewsList={setReviewsList}
       hotelAddress={hotelAddress}
       setHotelAddress={setHotelAddress}
+      welcomeBgUrl={welcomeBgUrl}
+      setWelcomeBgUrl={setWelcomeBgUrl}
     />
   );
 
   /* ─── WELCOME ───────────────────────────────────────────────── */
   if (step === 'welcome') return (
-    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4" style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(13, 107, 96, 0.3)), url('${welcomeBgUrl}')` }}>
       <div className="welcome-card w-full max-w-sm p-7 sm:p-9 text-center space-y-6 animate-up">
         
         {/* Переключатель языка / Language Selector */}
@@ -2613,7 +2698,7 @@ export default function App() {
 
   /* ─── NAME & PHONE ────────────────────────────────────────────── */
   if (step === 'name') return (
-    <div className="min-h-screen welcome-bg flex items-center justify-center p-4">
+    <div className="min-h-screen welcome-bg flex items-center justify-center p-4" style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(13, 107, 96, 0.3)), url('${welcomeBgUrl}')` }}>
       <div className="welcome-card w-full max-w-sm p-8 sm:p-10 space-y-6 animate-scale">
         <button onClick={() => setStep('welcome')} className="flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#0F0F0F] transition-colors">
           <ArrowLeft size={15} strokeWidth={2.5} /> {lang === 'en' ? 'Back' : lang === 'kg' ? 'Артка' : 'Назад'}
@@ -3112,7 +3197,7 @@ export default function App() {
 
   /* ─── ROOMS ─────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen welcome-bg flex justify-center">
+    <div className="min-h-screen welcome-bg flex justify-center" style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(13, 107, 96, 0.3)), url('${welcomeBgUrl}')` }}>
       <div className="w-full max-w-md bg-[#FAFAF8] min-h-screen shadow-2xl border-x border-[#EDE9E3]/50">
 
         {/* Top Bar */}

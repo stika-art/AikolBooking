@@ -42,14 +42,14 @@
 
 /* ─── Premium Glassmorphism Welcome Card ─────────────────────── */
 .welcome-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
   border-radius: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
   box-shadow:
-    0 24px 64px -12px rgba(0, 20, 40, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset,
+    0 24px 64px -12px rgba(0, 15, 35, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset,
     0 10px 30px -5px rgba(0, 0, 0, 0.15);
 }
 
