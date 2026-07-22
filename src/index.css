@@ -33,25 +33,30 @@
 
 /* ─── Premium Issyk-Kul Wallpaper Background ──────────────── */
 .welcome-bg {
+  position: relative;
   background-image: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(13, 107, 96, 0.35)), url('/issyk_kul_bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  /* НЕ используем background-attachment: fixed — он ломает backdrop-filter */
+  isolation: isolate;
 }
 
-/* ─── Premium Liquid Glass Card (Супер-размытое Жидкое стекло) ─── */
+/* ─── Premium Liquid Glass Card (Жидкое стекло) ─────────── */
 .welcome-card {
-  background: rgba(255, 255, 255, 0.32) !important;
-  backdrop-filter: blur(60px) saturate(240%) contrast(108%) !important;
-  -webkit-backdrop-filter: blur(60px) saturate(240%) contrast(108%) !important;
+  position: relative;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(60px) saturate(250%) brightness(1.05);
+  -webkit-backdrop-filter: blur(60px) saturate(250%) brightness(1.05);
   border-radius: 36px;
-  border: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
   box-shadow:
     0 30px 90px -10px rgba(0, 15, 30, 0.5),
     inset 0 1.5px 1.5px rgba(255, 255, 255, 0.9),
-    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2),
-    0 0 50px rgba(255, 255, 255, 0.3);
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.15),
+    0 0 50px rgba(255, 255, 255, 0.2);
+  /* isolation: isolate предотвращает наследование стекинг-контекста */
+  will-change: backdrop-filter;
 }
 
 /* ─── Premium Room Card ─────────────────────────────────────── */
