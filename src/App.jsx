@@ -1640,6 +1640,11 @@ function AdminPanel({
                 <div className="space-y-0.5 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-[10px] text-[#A09A92] font-mono font-semibold">{order.id}</span>
+                    {order.pin && (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        🔑 ПИН: {order.pin}
+                      </span>
+                    )}
                     {order.roomNo && (
                       <span className="bg-[#0D6B60]/10 text-[#0D6B60] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                         <Hash size={9} strokeWidth={2.5} />№ {order.roomNo}
@@ -1750,7 +1755,36 @@ export default function App() {
   const [phoneError, setPhoneError] = useState('');
   const [loading, setLoading]     = useState(false);
   const [history, setHistory]     = useState(() => getLS('ak_history', '[]'));
+  const [myTokens, setMyTokens]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ak_my_tokens') || '[]'); } catch(e) { return []; }
+  });
+  const [inputPin, setInputPin]   = useState('');
+  const [pinError, setPinError]   = useState('');
+  const [showShareModal, setShowShareModal] = useState(null);
   const [activeRoom, setActiveRoom] = useState(() => getLS('ak_active_room', 'null'));
+
+  const addMyToken = (token) => {
+    if (!token) return;
+    setMyTokens(prev => {
+      if (prev.includes(token)) return prev;
+      const updated = [...prev, token];
+      localStorage.setItem('ak_my_tokens', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPin = urlParams.get('pin');
+      if (urlPin && history && history.length > 0) {
+        const found = history.find(b => b.pin && String(b.pin) === String(urlPin));
+        if (found && found.secretToken) {
+          addMyToken(found.secretToken);
+        }
+      }
+    } catch(e) {}
+  }, [history]);
 
   // Глобальные состояния Telegram, Пароля и Отзывов
   const [tgToken, setTgToken] = useState(() => localStorage.getItem('ak_tg_token') || '');
@@ -2055,6 +2089,8 @@ export default function App() {
       const nums = ROOM_NUMBERS[room.id] || ['100'];
       const roomNo = nums[Math.floor(Math.random() * nums.length)];
       const id = `BK-${Math.floor(100 + Math.random() * 900)}`;
+      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      const secretToken = `sec_${id}_${Math.random().toString(36).substring(2, 9)}`;
       const n = nights(checkIn, checkOut);
       const numericPrice = getRoomPrice(room, guestsCount);
       const totalPrice = `${(numericPrice * Math.max(n, 1)).toLocaleString('ru-RU')} сом`;
@@ -2066,6 +2102,8 @@ export default function App() {
         guest:    guestName,
         phone:    guestPhone,
         roomNo,
+        pin,
+        secretToken,
         roomData: { ...room, roomNo },
         checkIn,
         checkOut,
@@ -2079,6 +2117,7 @@ export default function App() {
       const currentHistory = getLS('ak_history', '[]');
       const newHistory = [entry, ...currentHistory];
       setHistory(newHistory);
+      addMyToken(secretToken);
       
       // Легкий пейлоад без тяжелых base64 массива изображений для мгновенной отправки в Supabase
       const cleanEntry = {
@@ -2088,6 +2127,8 @@ export default function App() {
         guest:    guestName,
         phone:    guestPhone,
         roomNo,
+        pin,
+        secretToken,
         roomData: { id: room.id, name: room.name, price: room.price, img: room.img, roomNo },
         checkIn,
         checkOut,
@@ -2115,6 +2156,7 @@ export default function App() {
       sendTelegramNotification(
         `🏨 <b>НОВАЯ ЗАЯВКА НА БРОНИРОВАНИЕ!</b>\n\n` +
         `<b>Код:</b> <code>${cleanEntry.id}</code>\n` +
+        `<b>🔑 ПИН-код доступа:</b> <code>${pin}</code>\n` +
         `<b>Номер:</b> ${room.name} (№ ${roomNo})\n` +
         `<b>Гость:</b> ${guestName}\n` +
         `<b>Телефон:</b> <code>${guestPhone}</code>\n` +
@@ -3057,9 +3099,69 @@ export default function App() {
               return phoneMatch || nameMatch;
             });
 
-            const myActiveRoomsList = myConfirmedBookings.map(b => ({
+            if (myConfirmedBookings.length === 0 || pendingId) return null;
+
+            // Разделяем на авторизованные (на этом устройстве) и неавторизованные
+            const authorizedBookings = myConfirmedBookings.filter(b => 
+              (!b.secretToken && !b.pin) || (b.secretToken && myTokens.includes(b.secretToken))
+            );
+            const unauthorizedBookings = myConfirmedBookings.filter(b => 
+              b.secretToken && !myTokens.includes(b.secretToken)
+            );
+
+            // Если есть неавторизованные бронирования и устройство еще не авторизовалось
+            if (authorizedBookings.length === 0 && unauthorizedBookings.length > 0) {
+              const targetBk = unauthorizedBookings[0];
+              return (
+                <div className="bg-white border-[1.5px] border-[#0D6B60]/30 rounded-[20px] p-5 space-y-4 shadow-md animate-up">
+                  <div className="text-center space-y-1.5">
+                    <div className="w-12 h-12 rounded-full bg-[#E0F4F1] flex items-center justify-center mx-auto text-[#0D6B60]">
+                      <Lock size={22} />
+                    </div>
+                    <p className="text-[11px] font-bold text-[#0D6B60] uppercase tracking-wider">Защита доступа к номеру</p>
+                    <h3 className="font-display text-lg font-bold text-[#0F0F0F]">
+                      Номер № {targetBk.roomNo} забронирован
+                    </h3>
+                    <p className="text-[12px] text-[#6B7280] leading-relaxed">
+                      Для подключения этого устройства введите 4-значный ПИН-код (нажмите «📱 2-е устройство» на первом смартфоне или спросите у администратора):
+                    </p>
+                  </div>
+
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const target = unauthorizedBookings.find(b => String(b.pin || '').trim() === inputPin.trim());
+                    if (target && target.secretToken) {
+                      addMyToken(target.secretToken);
+                      setInputPin('');
+                      setPinError('');
+                    } else {
+                      setPinError('Неверный ПИН-код. Проверьте 4 цифры и попробуйте снова.');
+                    }
+                  }} className="space-y-3">
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        className={`input-soft text-center text-xl font-bold tracking-widest ${pinError ? 'border-red-500 bg-red-50' : ''}`}
+                        placeholder="ПИН-код (напр. 4821)"
+                        value={inputPin}
+                        onChange={e => { setInputPin(e.target.value); setPinError(''); }}
+                        autoFocus
+                      />
+                      {pinError && <p className="text-[11.5px] text-red-500 font-medium text-center mt-1.5">{pinError}</p>}
+                    </div>
+                    <button type="submit" className="btn-primary w-full py-3 text-[13px] flex items-center justify-center gap-2">
+                      <CheckCircle2 size={16} /> Подтвердить и открыть доступ
+                    </button>
+                  </form>
+                </div>
+              );
+            }
+
+            const myActiveRoomsList = authorizedBookings.map(b => ({
               bookingId: b.id,
               roomNo: b.roomNo,
+              pin: b.pin,
               name: b.roomData?.name || (b.title ? String(b.title).split('(')[0]?.trim() : null) || 'Номер',
               size: b.roomData?.size || '32 м²',
               cap: b.roomData?.cap || `${b.guests || 1} гостя`,
@@ -3071,7 +3173,7 @@ export default function App() {
               status: b.status
             }));
 
-            if (myActiveRoomsList.length === 0 || pendingId) return null;
+            if (myActiveRoomsList.length === 0) return null;
 
             return (
               <div className="space-y-4 animate-up">
@@ -3087,8 +3189,18 @@ export default function App() {
                     <div className="relative h-[160px] overflow-hidden">
                       <img src={rm.img} alt={rm.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute top-3 left-3 bg-[#0D6B60] text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" /> {rm.status || 'Заселён'}
+                      <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
+                        <div className="bg-[#0D6B60] text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" /> {rm.status || 'Заселён'}
+                        </div>
+                        {rm.pin && (
+                          <button
+                            type="button"
+                            onClick={() => setShowShareModal(rm)}
+                            className="bg-black/40 hover:bg-black/60 text-white text-[10.5px] font-bold px-2.5 py-1 rounded-full backdrop-blur-md border border-white/20 flex items-center gap-1 transition-all">
+                            <Smartphone size={11} /> 📱 2-е устройство
+                          </button>
+                        )}
                       </div>
                       <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
                         <div>
@@ -3606,6 +3718,39 @@ export default function App() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── SHARE ACCESS / SECOND DEVICE MODAL ── */}
+      {showShareModal && (
+        <div className="modal-backdrop animate-scale">
+          <div className="modal-box space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-[#E0F4F1] text-[#0D6B60] flex items-center justify-center mx-auto shadow-inner">
+              <Smartphone size={24} />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Доступ для 2-го устройства</h3>
+              <p className="text-[12.5px] text-[#6B7280]">
+                Чтобы открыть управление номером № {showShareModal.roomNo} на смартфоне или планшете:
+              </p>
+            </div>
+
+            <div className="bg-[#F6F4F1] border border-[#EDE9E3] p-4 rounded-[18px] space-y-2.5">
+              <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Ваш 4-значный ПИН-код:</p>
+              <div className="text-3xl font-black tracking-[8px] text-[#0D6B60] bg-white py-2.5 px-5 rounded-[14px] border border-[#C7EBE6] inline-block shadow-sm">
+                {showShareModal.pin || '1234'}
+              </div>
+              <p className="text-[11.5px] text-[#6B7280] leading-snug">
+                Введите этот ПИН-код на втором устройстве при входе по номеру <span className="font-bold text-[#0F0F0F]">{guestPhone}</span>
+              </p>
+            </div>
+
+            <div className="pt-2 flex justify-center">
+              <button onClick={() => setShowShareModal(null)} className="btn-primary py-2.5 px-8 text-[13px]">
+                Понятно
+              </button>
+            </div>
           </div>
         </div>
       )}
