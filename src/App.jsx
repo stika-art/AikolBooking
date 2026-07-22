@@ -253,6 +253,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
   const [newPassInput, setNewPassInput] = useState('');
   const [newPassConfirm, setNewPassConfirm] = useState('');
   const [passStatus, setPassStatus] = useState('');
+  const [adminPass, setAdminPass] = useState(() => localStorage.getItem('ak_admin_pass') || ADMIN_PASS);
 
   // Настройки Wi-Fi
   const [wifiSsid, setWifiSsid] = useState(() => localStorage.getItem('ak_wifi_ssid') || 'Aikol_Guest_WiFi');
@@ -324,7 +325,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
 
 
   // Редактирование номеров
-  const handleSaveRoom = (e) => {
+  const handleSaveRoom = async (e) => {
     e.preventDefault();
     const perksArr = roomForm.perks.split(',').map(s => s.trim()).filter(Boolean);
     const mainImg = roomForm.images[0] || roomForm.img || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=85';
@@ -334,58 +335,72 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
     const formattedPrice = rawNum > 0 ? rawNum.toLocaleString('ru-RU') : roomForm.price;
     const tiers = { 1: rawNum };
 
+    let updated;
     if (editingRoom) {
-      const updated = rooms.map(r => r.id === editingRoom.id ? { ...roomForm, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: formattedPrice } : r);
-      setRooms(updated);
+      updated = rooms.map(r => r.id === editingRoom.id ? { ...roomForm, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: formattedPrice } : r);
     } else {
       const newRoom = { ...roomForm, id: `rm_${Date.now()}`, img: mainImg, images: allImages, perks: perksArr, priceTiers: tiers, price: formattedPrice };
-      const updated = [...rooms, newRoom];
-      setRooms(updated);
+      updated = [...rooms, newRoom];
     }
+    setRooms(updated);
+    try { localStorage.setItem('ak_custom_rooms', JSON.stringify(updated)); } catch(e){}
+    try {
+      await supabase.from('orders').upsert([{ id: 'app_rooms', status: 'system', payload: { rooms: updated } }]);
+    } catch(err) { console.error('Supabase rooms sync error:', err); }
+
     setEditingRoom(null);
     setRoomForm({ id:'', name:'', subtitle:'', price:'', size:'', cap:'', img:'', images:[], perks:'', priceTiers:{ 1:'' } });
   };
 
-  const handleDeleteRoom = (id) => {
+  const handleDeleteRoom = async (id) => {
     if (confirm('Удалить этот номер?')) {
       const updated = rooms.filter(r => r.id !== id);
       setRooms(updated);
-      localStorage.setItem('ak_custom_rooms', JSON.stringify(updated));
+      try { localStorage.setItem('ak_custom_rooms', JSON.stringify(updated)); } catch(e){}
+      try {
+        await supabase.from('orders').upsert([{ id: 'app_rooms', status: 'system', payload: { rooms: updated } }]);
+      } catch(err) { console.error('Supabase rooms delete sync error:', err); }
     }
   };
 
   // Редактирование блюд
-  const handleSaveDish = (e) => {
+  const handleSaveDish = async (e) => {
     e.preventDefault();
     const ingArr = dishForm.ingredients.split(',').map(s => s.trim()).filter(Boolean);
     const mainImg = dishForm.images[0] || dishForm.img || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85';
     const allImages = dishForm.images.length > 0 ? dishForm.images : [mainImg];
 
+    let updated;
     if (editingDish) {
-      const updated = menuList.map(m => m.id === editingDish.id ? { ...dishForm, img: mainImg, images: allImages, ingredients: ingArr } : m);
-      setMenuList(updated);
+      updated = menuList.map(m => m.id === editingDish.id ? { ...dishForm, img: mainImg, images: allImages, ingredients: ingArr } : m);
     } else {
       const newDish = { ...dishForm, id: `f_${Date.now()}`, img: mainImg, images: allImages, ingredients: ingArr };
-      const updated = [...menuList, newDish];
-      setMenuList(updated);
+      updated = [...menuList, newDish];
     }
+    setMenuList(updated);
+    try { localStorage.setItem('ak_custom_menu', JSON.stringify(updated)); } catch(e){}
+    try {
+      await supabase.from('orders').upsert([{ id: 'app_menu', status: 'system', payload: { menu: updated } }]);
+    } catch(err) { console.error('Supabase menu sync error:', err); }
+
     setEditingDish(null);
     setDishForm({ id:'', name:'', category:'Горячее', price:'', desc:'', ingredients:'', img:'', images:[] });
   };
 
-  const handleDeleteDish = (id) => {
+  const handleDeleteDish = async (id) => {
     if (confirm('Удалить это блюдо из меню?')) {
       const updated = menuList.filter(m => m.id !== id);
       setMenuList(updated);
-      localStorage.setItem('ak_custom_menu', JSON.stringify(updated));
+      try { localStorage.setItem('ak_custom_menu', JSON.stringify(updated)); } catch(e){}
+      try {
+        await supabase.from('orders').upsert([{ id: 'app_menu', status: 'system', payload: { menu: updated } }]);
+      } catch(err) { console.error('Supabase menu delete sync error:', err); }
     }
   };
 
-
-
   const login = (e) => {
     e.preventDefault();
-    const currentAdminPass = localStorage.getItem('ak_admin_pass') || ADMIN_PASS;
+    const currentAdminPass = adminPass || localStorage.getItem('ak_admin_pass') || ADMIN_PASS;
     if (pass === currentAdminPass) { setAuthed(true); setPassErr(''); }
     else setPassErr('Неверный пароль');
   };
@@ -425,7 +440,7 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
   };
 
   // Подтверждение сброса пароля
-  const handleConfirmReset = (e) => {
+  const handleConfirmReset = async (e) => {
     e.preventDefault();
     if (inputResetCode.trim() !== generatedCode) {
       setResetMsg('❌ Неверный код из Telegram!');
@@ -435,7 +450,12 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
       setResetMsg('❌ Пароль должен быть от 4 символов');
       return;
     }
-    localStorage.setItem('ak_admin_pass', resetNewPass.trim());
+    const newP = resetNewPass.trim();
+    localStorage.setItem('ak_admin_pass', newP);
+    setAdminPass(newP);
+    try {
+      await supabase.from('orders').upsert([{ id: 'app_admin_pass', status: 'system', payload: { pass: newP } }]);
+    } catch(err){}
     setAuthed(true);
     setShowResetModal(false);
     setInputResetCode('');
@@ -959,12 +979,17 @@ function AdminPanel({ onExit, rooms, setRooms, menuList, setMenuList, history = 
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
                 <Lock size={16} className="text-[#0D6B60]" /> Смена пароля администратора
               </h3>
-              <form onSubmit={(e) => {
+              <form onSubmit={async (e) => {
                 e.preventDefault();
                 if (newPassInput.length < 4) { setPassStatus('❌ Пароль должен быть от 4 символов'); return; }
                 if (newPassInput !== newPassConfirm) { setPassStatus('❌ Пароли не совпадают'); return; }
-                localStorage.setItem('ak_admin_pass', newPassInput);
-                setPassStatus('✅ Новый пароль сохранён!');
+                const newP = newPassInput.trim();
+                localStorage.setItem('ak_admin_pass', newP);
+                setAdminPass(newP);
+                try {
+                  await supabase.from('orders').upsert([{ id: 'app_admin_pass', status: 'system', payload: { pass: newP } }]);
+                } catch(err){}
+                setPassStatus('✅ Новый пароль сохранён на всех устройствах!');
                 setNewPassInput('');
                 setNewPassConfirm('');
               }} className="space-y-3 text-[12px]">
@@ -1427,14 +1452,52 @@ export default function App() {
       try {
         const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
         if (!error && data) {
-          // Синхронизация Telegram конфига с базы Supabase для всех устройств
+          // Синхронизация Telegram конфига
           const tgRow = data.find(d => d.id === 'tg_config');
           if (tgRow && tgRow.payload) {
-            if (tgRow.payload.token) localStorage.setItem('ak_tg_token', tgRow.payload.token);
-            if (tgRow.payload.chat)  localStorage.setItem('ak_tg_chat', tgRow.payload.chat);
+            if (tgRow.payload.token) {
+              localStorage.setItem('ak_tg_token', tgRow.payload.token);
+              setTgToken(tgRow.payload.token);
+            }
+            if (tgRow.payload.chat) {
+              localStorage.setItem('ak_tg_chat', tgRow.payload.chat);
+              setTgChat(tgRow.payload.chat);
+            }
           }
+
+          // Синхронизация пароля администратора
+          const passRow = data.find(d => d.id === 'app_admin_pass');
+          if (passRow && passRow.payload && passRow.payload.pass) {
+            localStorage.setItem('ak_admin_pass', passRow.payload.pass);
+            setAdminPass(passRow.payload.pass);
+          }
+
+          // Синхронизация списка номеров
+          const roomsRow = data.find(d => d.id === 'app_rooms');
+          if (roomsRow && roomsRow.payload && Array.isArray(roomsRow.payload.rooms)) {
+            localStorage.setItem('ak_custom_rooms', JSON.stringify(roomsRow.payload.rooms));
+            setRooms(roomsRow.payload.rooms);
+          }
+
+          // Синхронизация списка блюд
+          const menuRow = data.find(d => d.id === 'app_menu');
+          if (menuRow && menuRow.payload && Array.isArray(menuRow.payload.menu)) {
+            localStorage.setItem('ak_custom_menu', JSON.stringify(menuRow.payload.menu));
+            setMenuList(menuRow.payload.menu);
+          }
+
+          // Синхронизация отзывов
+          const reviewsRows = data.filter(d => d.status === 'review' || d.id?.startsWith('rev_'));
+          if (reviewsRows.length > 0) {
+            const revs = reviewsRows.map(r => r.payload || r);
+            localStorage.setItem('ak_reviews', JSON.stringify(revs));
+            setReviewsList(revs);
+          }
+
+          // История заказов (исключая системные записи и отзывы)
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu'];
           const formatted = data
-            .filter(d => d.id !== 'tg_config')
+            .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && !d.id?.startsWith('rev_'))
             .map(d => ({
               ...d.payload,
               id: d.id || d.payload?.id,
@@ -1444,7 +1507,7 @@ export default function App() {
           try { localStorage.setItem('ak_history', JSON.stringify(formatted)); } catch(e) {}
         }
       } catch (e) {
-        console.log('Supabase fetch error');
+        console.log('Supabase fetch error', e);
       }
     };
 
