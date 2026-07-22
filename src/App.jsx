@@ -3042,31 +3042,34 @@ export default function App() {
 
           {/* ── АКТИВНЫЕ НОМЕРА ГОСТЯ (подтверждённые) ── */}
           {(() => {
-            const myConfirmedBookings = history.filter(o =>
-              o.type === 'booking' &&
-              ['Подтверждено', 'Заселён', 'Продлён'].includes(o.status) &&
-              (
-                (guestPhone && o.phone === guestPhone) ||
-                (guestName && o.guest === guestName) ||
-                (activeRoom && (o.id === activeRoom.bookingId || o.roomNo === activeRoom.roomNo))
-              )
-            );
+            const cleanP = p => String(p || '').replace(/\D/g, '');
+            const curPhone = cleanP(guestPhone);
+            const curName  = String(guestName || '').trim().toLowerCase();
 
-            const myActiveRoomsList = myConfirmedBookings.length > 0
-              ? myConfirmedBookings.map(b => ({
-                  bookingId: b.id,
-                  roomNo: b.roomNo,
-                  name: b.roomData?.name || (b.title ? String(b.title).split('(')[0]?.trim() : null) || 'Номер',
-                  size: b.roomData?.size || '32 м²',
-                  cap: b.roomData?.cap || `${b.guests || 1} гостя`,
-                  price: b.roomData?.price || b.price,
-                  img: b.roomData?.img || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=85',
-                  perks: b.roomData?.perks || ['Кровать King-size', 'Wi-Fi 100 Мбит/с'],
-                  checkIn: b.checkIn,
-                  checkOut: b.checkOut,
-                  status: b.status
-                }))
-              : (activeRoom ? [activeRoom] : []);
+            const myConfirmedBookings = history.filter(o => {
+              if (o.type !== 'booking' || !['Подтверждено', 'Заселён', 'Продлён'].includes(o.status)) return false;
+              const oPhone = cleanP(o.phone);
+              const oGuest = String(o.guest || '').trim().toLowerCase();
+
+              const phoneMatch = curPhone.length >= 3 && oPhone.length >= 3 && (oPhone.includes(curPhone) || curPhone.includes(oPhone));
+              const nameMatch  = curName.length >= 2 && oGuest.length >= 2 && oGuest === curName;
+
+              return phoneMatch || nameMatch;
+            });
+
+            const myActiveRoomsList = myConfirmedBookings.map(b => ({
+              bookingId: b.id,
+              roomNo: b.roomNo,
+              name: b.roomData?.name || (b.title ? String(b.title).split('(')[0]?.trim() : null) || 'Номер',
+              size: b.roomData?.size || '32 м²',
+              cap: b.roomData?.cap || `${b.guests || 1} гостя`,
+              price: b.roomData?.price || b.price,
+              img: b.roomData?.img || 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=900&q=85',
+              perks: b.roomData?.perks || ['Кровать King-size', 'Wi-Fi 100 Мбит/с'],
+              checkIn: b.checkIn,
+              checkOut: b.checkOut,
+              status: b.status
+            }));
 
             if (myActiveRoomsList.length === 0 || pendingId) return null;
 
