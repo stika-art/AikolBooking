@@ -306,13 +306,45 @@ const TRANSLATIONS = {
     namePlaceholder: 'Иван Иванов',
     phoneLabel: 'Номер телефона',
     confirmBtn: 'Подтвердить и продолжить',
-    roomsTitle: 'Номера гостиницы',
+    yourRoom: 'ВАШ НОМЕР',
+    activeRequests: 'АКТИВНЫЕ ЗАКАЗЫ & ЗАПРОСЫ',
+    requestsBtn: '🛎️ Запросы',
+    extendBtn: '📅 Продлить',
+    reviewTitle: 'ОТЗЫВ О ГОСТИНИЦЕ',
+    reviewHeader: 'Оцените наше обслуживание',
+    reviewPlaceholder: 'Напишите пару слов о проживании или работе персонала...',
+    sendReviewBtn: '✈️ Отправить отзыв',
+    thanksReview: 'Спасибо за ваш отзыв! Мы делаем всё для вашего комфорта.',
+    roomsCatalogTitle: 'Номера гостиницы',
     menuBtn: '🍕 Меню ресторана',
     wifiBtn: '📶 Wi-Fi в отеле',
     bookBtn: 'Забронировать',
     reviewsTitle: 'Отзывы гостей',
-    leaveReviewBtn: '✍️ Оставить отзыв',
-    myBooking: 'Моё бронирование',
+    checkInLabel: 'ЗАЕЗД',
+    checkOutLabel: 'ВЫЕЗД',
+    guestsCount: 'гостя',
+    perNight: 'сом/ночь',
+    nightShort: 'ноч.',
+    guestNameDefault: 'Гость',
+    notSpecified: 'Не указан',
+    pendingWait: 'Ожидание подтверждения',
+    cancelBooking: 'Отменить бронь',
+    roomOccupied: 'Занят до',
+    bookWithDate: 'Забронировать с',
+    serviceTitle: 'Услуги и запросы',
+    serviceDesc: 'Выберите нужный запрос или напишите свой',
+    orderFoodOption: '🍽️ Заказать еду',
+    extraBlanket: '🛏️ Доп. одеяло',
+    cleaning: '🧹 Уборка номера',
+    towels: '🧴 Полотенца',
+    kettle: '☕ Чайник / Посуда',
+    callAdmin: '🛎️ Вызов админа',
+    customReqLabel: 'Свой запрос',
+    customReqPlaceholder: 'Например: принесите утюг или обогреватель...',
+    cancel: 'Отмена',
+    send: 'Отправить',
+    allCat: 'Все',
+    detailsBtn: 'Подробнее',
   },
   kg: {
     welcome: 'Кош келиңиздер',
@@ -329,13 +361,45 @@ const TRANSLATIONS = {
     namePlaceholder: 'Асан Усонов',
     phoneLabel: 'Телефон номериңиз',
     confirmBtn: 'Ырастоо жана улантуу',
-    roomsTitle: 'Мейманкана бөлмөлөрү',
+    yourRoom: 'СИЗДИН БӨЛМӨҢҮЗ',
+    activeRequests: 'АКТИВДҮҮ БУЙРУТМАЛАР ЖАНА СУРООЛОР',
+    requestsBtn: '🛎️ Суроолор',
+    extendBtn: '📅 Узартуу',
+    reviewTitle: 'МЕЙМАНКАНА ЖӨНҮНДӨ ПИКИР',
+    reviewHeader: 'Биздин кызматты баалаңыз',
+    reviewPlaceholder: 'Ишмердүүлүк же кызматкерлер жөнүндө бир аз пикир жазыңыз...',
+    sendReviewBtn: '✈️ Пикирди жөнөтүү',
+    thanksReview: 'Пикириңиз үчүн рахмат! Биз сиздин комфортуңуз үчүн иштейбиз.',
+    roomsCatalogTitle: 'Мейманкана бөлмөлөрү',
     menuBtn: '🍕 Ресторан менюсу',
     wifiBtn: '📶 Мейманкана Wi-Fi',
     bookBtn: 'Бөлмөнү ээлөө',
     reviewsTitle: 'Коноктордун пикирлери',
-    leaveReviewBtn: '✍️ Пикир калтыруу',
-    myBooking: 'Менин ээлөөм',
+    checkInLabel: 'КИРҮҮ',
+    checkOutLabel: 'ЧЫГУУ',
+    guestsCount: 'конок',
+    perNight: 'сом/түн',
+    nightShort: 'түн',
+    guestNameDefault: 'Конок',
+    notSpecified: 'Көрсөтүлгөн эмес',
+    pendingWait: 'Ырастоону күтүү',
+    cancelBooking: 'Бронду жокко чыгаруу',
+    roomOccupied: 'Бош эмес чейин',
+    bookWithDate: 'Ээлөө баштап',
+    serviceTitle: 'Кызматтар жана суроолор',
+    serviceDesc: 'Керектүү суроону тандаңыз же өзүңүздүкүн жазыңыз',
+    orderFoodOption: '🍽️ Тамак-аш буйрутмалоо',
+    extraBlanket: '🛏️ Кошумча жууркан',
+    cleaning: '🧹 Бөлмөнү тазалоо',
+    towels: '🧴 Сүлгүлөр',
+    kettle: '☕ Чайнек / Идиш-аяк',
+    callAdmin: '🛎️ Админди чакыруу',
+    customReqLabel: 'Өзүңүздүн сурооңуз',
+    customReqPlaceholder: 'Мисалы: үтүк же жылыткыч алып келиңиз...',
+    cancel: 'Жокко чыгаруу',
+    send: 'Жөнөтүү',
+    allCat: 'Бардыгы',
+    detailsBtn: 'Кененирээк',
   },
   en: {
     welcome: 'Welcome',
@@ -352,13 +416,45 @@ const TRANSLATIONS = {
     namePlaceholder: 'John Doe',
     phoneLabel: 'Phone Number',
     confirmBtn: 'Confirm and Continue',
-    roomsTitle: 'Hotel Rooms',
+    yourRoom: 'YOUR ROOM',
+    activeRequests: 'ACTIVE ORDERS & REQUESTS',
+    requestsBtn: '🛎️ Requests',
+    extendBtn: '📅 Extend',
+    reviewTitle: 'HOTEL REVIEW',
+    reviewHeader: 'Rate our service',
+    reviewPlaceholder: 'Write a few words about your stay or hotel staff...',
+    sendReviewBtn: '✈️ Submit Review',
+    thanksReview: 'Thank you for your review! We strive for your comfort.',
+    roomsCatalogTitle: 'Hotel Rooms',
     menuBtn: '🍕 Restaurant Menu',
     wifiBtn: '📶 Hotel Wi-Fi',
-    bookBtn: 'Book Now',
+    bookBtn: 'Book Room',
     reviewsTitle: 'Guest Reviews',
-    leaveReviewBtn: '✍️ Leave a Review',
-    myBooking: 'My Reservation',
+    checkInLabel: 'CHECK-IN',
+    checkOutLabel: 'CHECK-OUT',
+    guestsCount: 'guests',
+    perNight: 'som/night',
+    nightShort: 'night(s)',
+    guestNameDefault: 'Guest',
+    notSpecified: 'Not specified',
+    pendingWait: 'Awaiting confirmation',
+    cancelBooking: 'Cancel booking',
+    roomOccupied: 'Occupied until',
+    bookWithDate: 'Book from',
+    serviceTitle: 'Services & Requests',
+    serviceDesc: 'Select a request or write your own',
+    orderFoodOption: '🍽️ Order Food',
+    extraBlanket: '🛏️ Extra Blanket',
+    cleaning: '🧹 Room Cleaning',
+    towels: '🧴 Fresh Towels',
+    kettle: '☕ Electric Kettle',
+    callAdmin: '🛎️ Call Manager',
+    customReqLabel: 'Custom Request',
+    customReqPlaceholder: 'For example: bring an iron or heater...',
+    cancel: 'Cancel',
+    send: 'Submit',
+    allCat: 'All',
+    detailsBtn: 'Details',
   }
 };
 
@@ -2978,7 +3074,7 @@ export default function App() {
               <div className="space-y-4 animate-up">
                 <div className="text-center py-2 mb-1">
                   <span className="text-[11px] font-semibold text-[#0D6B60] uppercase tracking-widest">
-                    {myActiveRoomsList.length > 1 ? `Ваши номера (${myActiveRoomsList.length})` : 'Ваш номер'}
+                    {myActiveRoomsList.length > 1 ? `${t.yourRoom} (${myActiveRoomsList.length})` : t.yourRoom}
                   </span>
                   <div className="mt-1.5 mx-auto w-8 h-[2px] rounded-full bg-[#0D6B60]" />
                 </div>
@@ -3006,17 +3102,17 @@ export default function App() {
                       {/* Даты */}
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
-                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Заезд</p>
+                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> {t.checkInLabel}</p>
                           <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(rm.checkIn)}</p>
                         </div>
                         <div className="bg-[#F6F4F1] rounded-[12px] px-3 py-2.5">
-                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> Выезд</p>
+                          <p className="text-[9px] text-[#A09A92] font-semibold uppercase tracking-wider flex items-center gap-1"><CalendarDays size={9}/> {t.checkOutLabel}</p>
                           <p className="text-[12px] font-bold text-[#0F0F0F] mt-0.5">{fmtDate(rm.checkOut)}</p>
                         </div>
                       </div>
                       {nights(rm.checkIn, rm.checkOut) > 0 && (
                         <p className="text-[11px] text-[#6B7280] text-center">
-                          {nights(rm.checkIn, rm.checkOut)} ноч. · {rm.price} сом/ночь
+                          {nights(rm.checkIn, rm.checkOut)} {t.nightShort} · {rm.price} {t.perNight}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-1.5">
@@ -3039,7 +3135,7 @@ export default function App() {
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-bold text-[#0D6B60] uppercase tracking-wider flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-[#0D6B60] animate-ping" />
-                                Активные заказы & запросы ({activeReqs.length})
+                                {t.activeRequests} ({activeReqs.length})
                               </span>
                             </div>
                             {activeReqs.map(req => (
@@ -3081,11 +3177,11 @@ export default function App() {
                       <div className="flex gap-2">
                         <button onClick={() => { setActiveRoom(rm); setModal('service'); }}
                           className="btn-primary flex-1 py-3 text-[13px] flex items-center justify-center gap-2">
-                          <Bell size={15} /> Запросы
+                          <Bell size={15} /> {t.requestsBtn}
                         </button>
                         <button onClick={() => { setActiveRoom(rm); setExtendDate(rm.checkOut); setModal('extend'); }}
                           className="btn-outline flex-1 py-3 text-[13px] flex items-center justify-center gap-2 text-[#0D6B60] border-[#C7EBE6]">
-                          <CalendarPlus size={15} /> Продлить
+                          <CalendarPlus size={15} /> {t.extendBtn}
                         </button>
                       </div>
                     </div>
@@ -3096,16 +3192,15 @@ export default function App() {
                 <div className="bg-white border border-[#EDE9E3] rounded-[20px] p-4 space-y-3 shadow-sm animate-up">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <p className="text-[11px] font-bold text-[#B8963A] uppercase tracking-wider">Отзыв о гостинице</p>
-                      <h4 className="font-display text-base font-bold text-[#0F0F0F]">Оцените наше обслуживание</h4>
+                      <p className="text-[11px] font-bold text-[#B8963A] uppercase tracking-wider">{t.reviewTitle}</p>
+                      <h4 className="font-display text-base font-bold text-[#0F0F0F]">{t.reviewHeader}</h4>
                     </div>
                     <span className="text-xl">⭐</span>
                   </div>
 
                   {feedbackSent ? (
                     <div className="bg-green-50 border border-green-200 rounded-[12px] p-3 text-center space-y-1 animate-scale">
-                      <p className="text-[13px] font-bold text-green-700">Спасибо за ваш отзыв! 🙏</p>
-                      <p className="text-[11px] text-green-600">Ваша оценка отправлена администрации гостиницы «Айкөл».</p>
+                      <p className="text-[13px] font-bold text-green-700">{t.thanksReview} 🙏</p>
                     </div>
                   ) : (
                     <form onSubmit={(e) => handleSendFeedback(e, myActiveRoomsList[0]?.roomNo)} className="space-y-3">
@@ -3122,12 +3217,12 @@ export default function App() {
                       </div>
                       <textarea
                         className="input-soft text-[12px] min-h-[65px] resize-none"
-                        placeholder="Напишите пару слов о проживании или работе персонала..."
+                        placeholder={t.reviewPlaceholder}
                         value={ratingComment}
                         onChange={e => setRatingComment(e.target.value)}
                       />
                       <button type="submit" className="btn-primary w-full py-2.5 text-[12.5px] flex items-center justify-center gap-1.5">
-                        <Send size={14} /> Отправить отзыв
+                        <Send size={14} /> {t.sendReviewBtn}
                       </button>
                     </form>
                   )}
@@ -3138,7 +3233,7 @@ export default function App() {
 
           {/* Heading */}
           <div className="text-center py-2">
-            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">Наши номера</h2>
+            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">{t.roomsCatalogTitle}</h2>
             <div className="mt-2 mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
           </div>
 
@@ -3201,17 +3296,17 @@ export default function App() {
                 )}
 
                 <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10">
-                  {r.price} <span className="font-normal text-[#6B7280]">сом/ночь</span>
+                  {r.price} <span className="font-normal text-[#6B7280]">{t.perNight}</span>
                 </div>
                 {r.id === 'suite' && !occupied && <div className="absolute top-3 left-3 badge-gold z-10"><Sparkles size={10} /> Премиум</div>}
                 {/* Бейдж занятости */}
                 {occupied ? (
                   <div className="absolute top-3 left-3 bg-red-500 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md z-10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-200 animate-pulse" /> Занято
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-200 animate-pulse" /> {lang === 'en' ? 'Occupied' : lang === 'kg' ? 'Бош эмес' : 'Занято'}
                   </div>
                 ) : (
                   <div className="absolute bottom-3 left-3 bg-green-500/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-200 animate-pulse" /> Свободно
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-200 animate-pulse" /> {lang === 'en' ? 'Available' : lang === 'kg' ? 'Бош' : 'Свободно'}
                   </div>
                 )}
               </div>
@@ -3229,7 +3324,7 @@ export default function App() {
                 {occupied && occupancy && (
                   <div className="bg-red-50 border border-red-100 rounded-[10px] px-3 py-2 text-[11px] text-red-500 flex items-center gap-2">
                     <span>🔒</span>
-                    <span>Занят до {fmtDate(occupancy.checkOut)}</span>
+                    <span>{t.roomOccupied} {fmtDate(occupancy.checkOut)}</span>
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1.5">
@@ -3245,7 +3340,7 @@ export default function App() {
               <div className="text-center py-2">
                 <span className="text-[11px] font-semibold text-[#B8963A] uppercase tracking-widest flex items-center justify-center gap-1.5">
                   <Star size={12} fill="#B8963A" className="text-[#B8963A]" />
-                  Отзывы наших гостей ({(reviewsList.reduce((a, r) => a + (parseInt(r?.stars) || 5), 0) / (reviewsList.length || 1)).toFixed(1)} / 5.0 ⭐)
+                  {t.reviewsTitle} ({(reviewsList.reduce((a, r) => a + (parseInt(r?.stars) || 5), 0) / (reviewsList.length || 1)).toFixed(1)} / 5.0 ⭐)
                 </span>
                 <div className="mt-1.5 mx-auto w-10 h-[2px] rounded-full bg-[#B8963A]" />
               </div>
@@ -3255,10 +3350,10 @@ export default function App() {
                   <div key={rev.id || Math.random()} className="bg-white border border-[#EDE9E3] rounded-[18px] p-4 space-y-2 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest || 'Гость'}</p>
+                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest || t.guestNameDefault}</p>
                         {rev.roomNo && (
                           <p className="text-[10.5px] text-[#0D6B60] font-semibold">
-                            Проживал(а) в номере № {rev.roomNo}
+                            {lang === 'en' ? `Stayed in room #${rev.roomNo}` : lang === 'kg' ? `№ ${rev.roomNo} бөлмөсүндө жашаган` : `Проживал(а) в номере № ${rev.roomNo}`}
                           </p>
                         )}
                       </div>
@@ -3289,20 +3384,22 @@ export default function App() {
         <div className="modal-backdrop animate-scale">
           <div className="modal-box space-y-4">
             <div className="space-y-1">
-              <p className="text-[12px] font-semibold text-[#0D6B60] uppercase tracking-wider">Сервис в номер № {activeRoom.roomNo}</p>
-              <h3 className="font-display text-xl font-semibold text-[#0F0F0F]">Услуги и запросы</h3>
-              <p className="text-[12px] text-[#6B7280]">Выберите нужный запрос или напишите свой</p>
+              <p className="text-[12px] font-semibold text-[#0D6B60] uppercase tracking-wider">
+                {lang === 'en' ? `Service to Room #${activeRoom.roomNo}` : lang === 'kg' ? `№ ${activeRoom.roomNo} бөлмөгө кызмат көрсөтүү` : `Сервис в номер № ${activeRoom.roomNo}`}
+              </p>
+              <h3 className="font-display text-xl font-semibold text-[#0F0F0F]">{t.serviceTitle}</h3>
+              <p className="text-[12px] text-[#6B7280]">{t.serviceDesc}</p>
             </div>
 
             {/* Быстрые запросы */}
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: '🍽️ Заказать еду', action: () => { setModal(null); setShowMenuScreen(true); } },
-                { label: '🛏️ Доп. одеяло', req: 'Дополнительное одеяло' },
-                { label: '🧹 Уборка номера', req: 'Уборка в номере' },
-                { label: '🧴 Полотенца', req: 'Свежие полотенца и гигиена' },
-                { label: '☕ Чайник / Посуда', req: 'Чайник и посуда в номер' },
-                { label: '🛎️ Вызов админа', req: 'Вызов администратора в номер' },
+                { label: t.orderFoodOption, action: () => { setModal(null); setShowMenuScreen(true); } },
+                { label: t.extraBlanket, req: 'Дополнительное одеяло' },
+                { label: t.cleaning, req: 'Уборка в номере' },
+                { label: t.towels, req: 'Свежие полотенца и гигиена' },
+                { label: t.kettle, req: 'Чайник и посуда в номер' },
+                { label: t.callAdmin, req: 'Вызов администратора в номер' },
               ].map((item, idx) => (
                 <button
                   key={idx}
@@ -3323,19 +3420,19 @@ export default function App() {
             {/* Произвольный запрос */}
             <form onSubmit={(e) => { e.preventDefault(); submitGuestRequest(customRequest); }} className="space-y-3">
               <div>
-                <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Свой запрос</label>
+                <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">{t.customReqLabel}</label>
                 <input
                   type="text"
                   className="input-soft mt-1 text-[13px]"
-                  placeholder="Например: принесите утюг или обогреватель..."
+                  placeholder={t.customReqPlaceholder}
                   value={customRequest}
                   onChange={e => setCustomRequest(e.target.value)}
                 />
               </div>
               <div className="flex gap-2 pt-1">
-                <button type="button" onClick={() => setModal(null)} className="btn-outline flex-1 py-2.5">Отмена</button>
+                <button type="button" onClick={() => setModal(null)} className="btn-outline flex-1 py-2.5">{t.cancel}</button>
                 <button type="submit" disabled={!customRequest.trim()} className="btn-primary flex-1 py-2.5 flex items-center justify-center gap-1.5">
-                  <Bell size={14} /> Отправить
+                  <Bell size={14} /> {t.send}
                 </button>
               </div>
             </form>
