@@ -3295,14 +3295,15 @@ export default function App() {
 
         {/* Top Bar */}
         <div className="bg-white border-b border-[#EDE9E3] px-3 py-3 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 flex-1 overflow-hidden mr-2">
             <div className="w-9 h-9 shrink-0 rounded-xl bg-[#0D6B60] flex items-center justify-center text-white font-bold text-sm shadow-sm">
               {(guestName && guestName.length > 0 ? guestName[0] : 'Г').toUpperCase()}
             </div>
-            <div className="min-w-0">
+            <div className="overflow-hidden">
               <p className="text-[13px] font-bold text-[#0F0F0F] leading-tight truncate">{guestName || 'Гость'}</p>
-              <p className="text-[11px] text-[#6B7280] flex items-center gap-1 truncate">
-                <Phone size={10} className="text-[#0D6B60] shrink-0" /> {guestPhone || 'Не указан'}
+              <p className="text-[11px] text-[#6B7280] flex items-center gap-1">
+                <Phone size={10} className="text-[#0D6B60] shrink-0" />
+                <span className="truncate">{guestPhone || 'Не указан'}</span>
               </p>
             </div>
           </div>
