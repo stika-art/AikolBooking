@@ -6,7 +6,7 @@ import {
   ArrowLeft, CheckCircle2, Sparkles, Bed, Trees, Wifi,
   Wind, Coffee, Waves, Users, Package, Eye, Zap, UserCheck,
   History, DoorOpen, Lock, LogOut, Bell, X, Hash,
-  RefreshCw, CalendarDays, CalendarPlus, Hourglass, Phone,
+  RefreshCw, Calendar, CalendarDays, CalendarPlus, Hourglass, Phone, Smartphone,
   ChefHat, Tv, Flame, Bath, Shield, Check, Layers, Refrigerator, Wine, Armchair, WashingMachine,
   ChevronLeft, ChevronRight, Send
 } from 'lucide-react';
