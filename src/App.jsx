@@ -212,6 +212,24 @@ const getIngredientsArray = (ing) => {
   return [];
 };
 
+const getOrderAmount = (o) => {
+  if (!o) return 0;
+  if (typeof o.amount === 'number' && !isNaN(o.amount)) return o.amount;
+  if (typeof o.totalAmount === 'number' && !isNaN(o.totalAmount)) return o.totalAmount;
+
+  if (o.total) {
+    const totalDigits = String(o.total).replace(/\D/g, '');
+    if (totalDigits) return parseInt(totalDigits, 10) || 0;
+  }
+
+  if (o.price) {
+    const priceStr = String(o.price).split(/сом|\/|\(/)[0];
+    const digits = priceStr.replace(/\D/g, '');
+    if (digits) return parseInt(digits, 10) || 0;
+  }
+  return 0;
+};
+
 const Loader = () => <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />;
 
 const getLS = (k, fallback) => {
@@ -1006,7 +1024,7 @@ function AdminPanel({
         {/* ── ВКЛАДКА: ОТЧЁТНОСТЬ & АНАЛИТИКА ── */}
         {filter === 'reports' && (
           <div className="px-4 py-4 space-y-4 animate-up">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="font-display text-lg font-bold text-[#0F0F0F]">📊 Финансовая отчётность</h3>
                 <p className="text-[12px] text-[#6B7280]">Сводный анализ всех доходов, броней и заказов</p>
@@ -1022,7 +1040,7 @@ function AdminPanel({
                       o.guest || '',
                       o.phone || '',
                       o.roomNo || '',
-                      parseInt(String(o.price || '0').replace(/\D/g, '')) || 0,
+                      getOrderAmount(o),
                       o.status || '',
                       o.date || ''
                     ])
@@ -1042,64 +1060,64 @@ function AdminPanel({
             </div>
 
             {/* Карточки KPI */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Общий доход */}
-              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
-                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">💰 Общий доход</p>
-                <p className="text-base sm:text-xl font-black text-[#0D6B60] truncate">
+              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">💰 Общий доход</p>
+                <p className="text-base sm:text-lg font-black text-[#0D6B60] leading-tight whitespace-nowrap overflow-x-auto">
                   {history
                     .filter(o => !['Отменено'].includes(o.status))
-                    .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
+                    .reduce((acc, o) => acc + getOrderAmount(o), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10px] text-[#A09A92] truncate">Брони + Кухня</p>
+                <p className="text-[11px] text-[#A09A92]">Брони + Кухня</p>
               </div>
 
               {/* Доход с номеров */}
-              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
-                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🏨 Выручка номеров</p>
-                <p className="text-base sm:text-xl font-black text-[#0F0F0F] truncate">
+              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🏨 Выручка номеров</p>
+                <p className="text-base sm:text-lg font-black text-[#0F0F0F] leading-tight whitespace-nowrap overflow-x-auto">
                   {history
                     .filter(o => o.type === 'booking' && !['Отменено'].includes(o.status))
-                    .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
+                    .reduce((acc, o) => acc + getOrderAmount(o), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10px] text-[#A09A92] truncate">
+                <p className="text-[11px] text-[#A09A92]">
                   {history.filter(o => o.type === 'booking' && !['Отменено'].includes(o.status)).length} броней
                 </p>
               </div>
 
               {/* Доход с кухни */}
-              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
-                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🍕 Выручка кухни</p>
-                <p className="text-base sm:text-xl font-black text-amber-600 truncate">
+              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🍕 Выручка кухни</p>
+                <p className="text-base sm:text-lg font-black text-amber-600 leading-tight whitespace-nowrap overflow-x-auto">
                   {history
                     .filter(o => o.type === 'food' && !['Отменено'].includes(o.status))
-                    .reduce((acc, o) => acc + (parseInt(String(o.price || '0').replace(/\D/g, '')) || 0), 0)
+                    .reduce((acc, o) => acc + getOrderAmount(o), 0)
                     .toLocaleString('ru-RU')} сом
                 </p>
-                <p className="text-[10px] text-[#A09A92] truncate">
+                <p className="text-[11px] text-[#A09A92]">
                   {history.filter(o => o.type === 'food' && !['Отменено'].includes(o.status)).length} заказов
                 </p>
               </div>
 
               {/* Запросов в номер */}
-              <div className="bg-white border border-[#EDE9E3] p-3 rounded-[16px] shadow-sm space-y-1 min-w-0">
-                <p className="text-[9.5px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🛎️ Запросы в номер</p>
-                <p className="text-base sm:text-xl font-black text-purple-700 truncate">
+              <div className="bg-white border border-[#EDE9E3] p-3.5 rounded-[16px] shadow-sm space-y-1">
+                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider leading-tight">🛎️ Запросы в номер</p>
+                <p className="text-base sm:text-lg font-black text-purple-700 leading-tight whitespace-nowrap">
                   {history.filter(o => o.type === 'request' || o.id?.startsWith('RQ-')).length}
                 </p>
-                <p className="text-[10px] text-[#A09A92] truncate">Обслуживание</p>
+                <p className="text-[11px] text-[#A09A92]">Обслуживание</p>
               </div>
             </div>
 
             {/* Детализация по статусам */}
-            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-3.5 space-y-3 shadow-sm">
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h4 className="font-bold text-[13px] text-[#0F0F0F] flex items-center justify-between">
                 <span>📈 Статусы заявок</span>
                 <span className="text-[11px] font-normal text-[#6B7280]">Всего: {history.length}</span>
               </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                 {[
                   { label: 'Подтверждено', statusArr: ['Подтверждено', 'Заселён'], color: 'bg-green-50 text-green-700 border-green-200' },
                   { label: 'В работе', statusArr: ['В работе', 'Готовится', 'Принят', 'Ожидает'], color: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -1109,11 +1127,11 @@ function AdminPanel({
                   const count = history.filter(o => st.statusArr.includes(o.status)).length;
                   const percent = history.length > 0 ? Math.round((count / history.length) * 100) : 0;
                   return (
-                    <div key={st.label} className={`p-2.5 rounded-xl border ${st.color} space-y-1 min-w-0`}>
-                      <p className="text-[9.5px] uppercase font-bold tracking-wider leading-tight truncate">{st.label}</p>
-                      <div className="flex items-baseline justify-between">
-                        <p className="text-base font-black">{count}</p>
-                        <p className="text-[10.5px] font-bold opacity-80">{percent}%</p>
+                    <div key={st.label} className={`p-3 rounded-xl border ${st.color} space-y-1`}>
+                      <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider leading-tight">{st.label}</p>
+                      <div className="flex items-baseline justify-between gap-1">
+                        <p className="text-lg font-black">{count}</p>
+                        <p className="text-[11px] font-bold opacity-80">{percent}%</p>
                       </div>
                     </div>
                   );
@@ -1122,18 +1140,18 @@ function AdminPanel({
             </div>
 
             {/* Таблица последних финансовых операций */}
-            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-3.5 space-y-3 shadow-sm">
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h4 className="font-bold text-[13px] text-[#0F0F0F]">📑 История финансовых операций ({history.length})</h4>
               <div className="overflow-x-auto -mx-1 px-1">
-                <table className="w-full text-left text-[12px] border-collapse min-w-[500px]">
+                <table className="w-full text-left text-[12px] border-collapse min-w-[560px]">
                   <thead>
                     <tr className="border-b border-[#EDE9E3] text-[#6B7280] font-semibold text-[10.5px] uppercase tracking-wider whitespace-nowrap">
-                      <th className="py-2 px-2">Код</th>
-                      <th className="py-2 px-2">Тип</th>
-                      <th className="py-2 px-2">Описание</th>
-                      <th className="py-2 px-2">Гость / Номер</th>
-                      <th className="py-2 px-2">Сумма</th>
-                      <th className="py-2 px-2">Статус</th>
+                      <th className="py-2.5 px-3">Код</th>
+                      <th className="py-2.5 px-3">Тип</th>
+                      <th className="py-2.5 px-3">Описание</th>
+                      <th className="py-2.5 px-3">Гость / Номер</th>
+                      <th className="py-2.5 px-3">Сумма</th>
+                      <th className="py-2.5 px-3">Статус</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F6F4F1]">
@@ -1142,26 +1160,31 @@ function AdminPanel({
                         <td colSpan={6} className="py-6 text-center text-[#A09A92]">История операций пока пуста</td>
                       </tr>
                     ) : (
-                      history.slice(0, 30).map(o => (
-                        <tr key={o.id} className="hover:bg-[#FAFAF8] transition-colors whitespace-nowrap">
-                          <td className="py-2 px-2 font-mono font-bold text-[11px] text-[#0F0F0F]">{o.id}</td>
-                          <td className="py-2 px-2">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              o.type === 'booking' ? 'bg-teal-50 text-teal-700 border border-teal-200' :
-                              o.type === 'food' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                              'bg-purple-50 text-purple-700 border border-purple-200'
-                            }`}>
-                              {o.type === 'booking' ? '🏨 Бронь' : o.type === 'food' ? '🍕 Еда' : '🛎️ Запрос'}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 font-medium max-w-[160px] truncate text-[#0F0F0F]">{o.title}</td>
-                          <td className="py-2 px-2 text-[#6B7280]">
-                            {o.guest || '—'} {o.roomNo ? `(№ ${o.roomNo})` : ''}
-                          </td>
-                          <td className="py-2 px-2 font-bold text-[#0D6B60]">{o.price || '0 сом'}</td>
-                          <td className="py-2 px-2"><StatusBadge status={o.status} /></td>
-                        </tr>
-                      ))
+                      history.slice(0, 30).map(o => {
+                        const amt = getOrderAmount(o);
+                        return (
+                          <tr key={o.id} className="hover:bg-[#FAFAF8] transition-colors whitespace-nowrap">
+                            <td className="py-2.5 px-3 font-mono font-bold text-[11px] text-[#0F0F0F]">{o.id}</td>
+                            <td className="py-2.5 px-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                o.type === 'booking' ? 'bg-teal-50 text-teal-700 border border-teal-200' :
+                                o.type === 'food' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                                'bg-purple-50 text-purple-700 border border-purple-200'
+                              }`}>
+                                {o.type === 'booking' ? '🏨 Бронь' : o.type === 'food' ? '🍕 Еда' : '🛎️ Запрос'}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 font-medium max-w-[160px] truncate text-[#0F0F0F]">{o.title}</td>
+                            <td className="py-2.5 px-3 text-[#6B7280]">
+                              {o.guest || '—'} {o.roomNo ? `(№ ${o.roomNo})` : ''}
+                            </td>
+                            <td className="py-2.5 px-3 font-bold text-[#0D6B60]">
+                              {amt > 0 ? `${amt.toLocaleString('ru-RU')} сом` : (o.price || '0 сом')}
+                            </td>
+                            <td className="py-2.5 px-3"><StatusBadge status={o.status} /></td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
