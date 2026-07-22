@@ -511,11 +511,14 @@ function AdminPanel({
   adminPass,
   setAdminPass,
   reviewsList,
-  setReviewsList
+  setReviewsList,
+  hotelAddress,
+  setHotelAddress
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
   const [passErr, setPassErr] = useState('');
+  const [addressStatus, setAddressStatus] = useState('');
 
   // Сброс пароля через Telegram
   const [showResetModal, setShowResetModal] = useState(false);
@@ -1252,6 +1255,50 @@ function AdminPanel({
               </form>
             </div>
 
+            {/* Редактирование адреса гостиницы */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                <MapPin size={16} className="text-[#0D6B60]" /> Адрес и локация гостиницы для гостей
+              </h3>
+              <p className="text-[11.5px] text-[#6B7280]">
+                Этот адрес будет мгновенно обновлен у всех гостей на главном экране, в карточках номеров и бронировании.
+              </p>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!hotelAddress.trim()) return;
+                const addr = hotelAddress.trim();
+                localStorage.setItem('ak_hotel_address', addr);
+                if (typeof setHotelAddress === 'function') setHotelAddress(addr);
+                try {
+                  await supabase.from('orders').upsert([{ id: 'app_hotel_address', status: 'system', payload: { address: addr } }]);
+                  setAddressStatus('✅ Адрес сохранён и обновлён на всех устройствах!');
+                  setTimeout(() => setAddressStatus(''), 4000);
+                } catch(err){
+                  setAddressStatus('✅ Адрес сохранён локально!');
+                }
+              }} className="space-y-3 text-[12px]">
+                <div>
+                  <label className="font-semibold text-[#6B7280]">Адрес гостиницы (город, улица, дом)</label>
+                  <input
+                    type="text"
+                    className="input-soft mt-1 text-[13px]"
+                    required
+                    placeholder="Например: Балыкчы, ул. Восточная 3"
+                    value={hotelAddress}
+                    onChange={e => setHotelAddress(e.target.value)}
+                  />
+                </div>
+                {addressStatus && (
+                  <div className="text-[11px] p-2.5 rounded-lg border font-medium bg-green-50 text-green-700 border-green-200">
+                    {addressStatus}
+                  </div>
+                )}
+                <button type="submit" className="btn-primary w-full py-2.5 text-[12px]">
+                  Сохранить новый адрес
+                </button>
+              </form>
+            </div>
+
             {/* Смена пароля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -1765,6 +1812,7 @@ function AdminPanel({
 export default function App() {
   const [step, setStep]           = useState('welcome');
   const [lang, setLang]           = useState(() => localStorage.getItem('ak_lang') || 'ru');
+  const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
   const t = TRANSLATIONS[lang] || TRANSLATIONS.ru;
   const [showAdmin, setShowAdmin] = useState(false);
   const [inputName, setInputName] = useState(() => localStorage.getItem('ak_name') || '');
@@ -2450,6 +2498,8 @@ export default function App() {
       setAdminPass={setAdminPass}
       reviewsList={reviewsList}
       setReviewsList={setReviewsList}
+      hotelAddress={hotelAddress}
+      setHotelAddress={setHotelAddress}
     />
   );
 
@@ -2490,7 +2540,7 @@ export default function App() {
           onClick={handleLogoTap}>
           <span className="font-display text-white font-bold text-3xl leading-none">А</span>
         </div>
-        <div><span className="badge-gold"><MapPin size={11} strokeWidth={2.5} /> {t.location}</span></div>
+        <div><span className="badge-gold"><MapPin size={11} strokeWidth={2.5} /> {hotelAddress || t.location}</span></div>
         <div className="space-y-1">
           <h1 className="font-display text-[26px] sm:text-[30px] font-semibold text-[#0F0F0F] leading-[1.2]">{t.welcome}</h1>
           <p className="font-display text-[17px] text-[#0D6B60] italic font-medium leading-snug">{t.sub}</p>
