@@ -2467,111 +2467,111 @@ export default function App() {
               ))}
             </div>
 
-            {/* Dish Detail Modal */}
-            {viewDish && (() => {
-              const dishPhotos = (viewDish.images && viewDish.images.length > 0) ? viewDish.images : (viewDish.img ? [viewDish.img] : []);
-              const currentDishPhoto = dishPhotos[activeDishImgIndex] || dishPhotos[0] || viewDish.img || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85';
-
-              return (
-                <div className="modal-backdrop animate-scale" onClick={() => { setViewDish(null); setActiveDishImgIndex(0); }}>
-                  <div className="modal-box p-0 overflow-hidden space-y-0 max-w-sm" onClick={e => e.stopPropagation()}>
-                    <div className="relative h-[220px] overflow-hidden group">
-                      <img src={currentDishPhoto} alt={viewDish.name} className="w-full h-full object-cover transition-all duration-300" />
-                      <button 
-                        onClick={() => { setViewDish(null); setActiveDishImgIndex(0); }}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm z-10 hover:bg-black/60">
-                        <X size={16} strokeWidth={2.5} />
-                      </button>
-                      <span className="absolute bottom-3 left-3 bg-[#0D6B60] text-white text-[12px] font-bold px-3 py-1 rounded-full shadow-md z-10">
-                        {viewDish.category}
-                      </span>
-
-                      {/* Стрелки слайдера блюда */}
-                      {dishPhotos.length > 1 && (
-                        <>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveDishImgIndex(prev => (prev === 0 ? dishPhotos.length - 1 : prev - 1)); }}
-                            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
-                            <ChevronLeft size={20} />
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setActiveDishImgIndex(prev => (prev === dishPhotos.length - 1 ? 0 : prev + 1)); }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
-                            <ChevronRight size={20} />
-                          </button>
-                          <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                            {activeDishImgIndex + 1} / {dishPhotos.length}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Лента миниатюр снизу фото блюда */}
-                    {dishPhotos.length > 1 && (
-                      <div className="flex gap-2 px-4 py-2.5 overflow-x-auto bg-[#F6F4F1] border-b border-[#EDE9E3]" style={{ scrollbarWidth: 'none' }}>
-                        {dishPhotos.map((ph, idx) => (
-                          <button 
-                            key={idx}
-                            onClick={() => setActiveDishImgIndex(idx)}
-                            className={`relative h-12 w-16 rounded-md overflow-hidden border-2 shrink-0 transition-all ${activeDishImgIndex === idx ? 'border-[#0D6B60] scale-105 shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                            <img src={ph} alt="" className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                  <div className="p-5 space-y-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-display text-xl font-bold text-[#0F0F0F] leading-tight">{viewDish.name}</h3>
-                      <span className="font-black text-[18px] text-[#0D6B60] shrink-0">{viewDish.price}</span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Описание</p>
-                      <p className="text-[13px] text-[#4B5563] leading-relaxed bg-[#F6F4F1] p-3 rounded-[12px]">
-                        {viewDish.desc}
-                      </p>
-                    </div>
-
-                    {/* Секция с Ингредиентами в описании */}
-                    {(() => {
-                      const ings = getIngredientsArray(viewDish.ingredients);
-                      if (ings.length === 0) return null;
-                      return (
-                        <div className="space-y-2">
-                          <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Состав и ингредиенты</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {ings.map((ing, idx) => (
-                              <span key={idx} className="text-[11.5px] bg-[#E0F4F1] text-[#0D6B60] font-medium px-2.5 py-1 rounded-lg border border-[#C7EBE6] flex items-center gap-1">
-                                • {ing}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {activeRoom ? (
-                      <button 
-                        onClick={() => { orderFood(viewDish); }} 
-                        className="btn-primary w-full py-3 text-[13px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                        <Utensils size={15} /> Заказать в номер № {activeRoom.roomNo}
-                      </button>
-                    ) : (
-                      <div className="text-center p-3 bg-amber-50 border border-amber-200 rounded-[12px]">
-                        <p className="text-[11.5px] text-amber-700 font-medium">
-                          Заказ еды с доставкой станет доступен после заселения в номер.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              );
-            })()}
-
           </div>
         </div>
+
+        {/* Dish Detail Modal — фиксировано по центру экрана вне прокручиваемой области */}
+        {viewDish && (() => {
+          const dishPhotos = (viewDish.images && viewDish.images.length > 0) ? viewDish.images : (viewDish.img ? [viewDish.img] : []);
+          const currentDishPhoto = dishPhotos[activeDishImgIndex] || dishPhotos[0] || viewDish.img || 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=85';
+
+          return (
+            <div className="modal-backdrop animate-scale" onClick={() => { setViewDish(null); setActiveDishImgIndex(0); }}>
+              <div className="modal-box p-0 overflow-hidden space-y-0 max-w-sm" onClick={e => e.stopPropagation()}>
+                <div className="relative h-[220px] overflow-hidden group">
+                  <img src={currentDishPhoto} alt={viewDish.name} className="w-full h-full object-cover transition-all duration-300" />
+                  <button 
+                    onClick={() => { setViewDish(null); setActiveDishImgIndex(0); }}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm z-10 hover:bg-black/60">
+                    <X size={16} strokeWidth={2.5} />
+                  </button>
+                  <span className="absolute bottom-3 left-3 bg-[#0D6B60] text-white text-[12px] font-bold px-3 py-1 rounded-full shadow-md z-10">
+                    {viewDish.category}
+                  </span>
+
+                  {/* Стрелки слайдера блюда */}
+                  {dishPhotos.length > 1 && (
+                    <>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setActiveDishImgIndex(prev => (prev === 0 ? dishPhotos.length - 1 : prev - 1)); }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setActiveDishImgIndex(prev => (prev === dishPhotos.length - 1 ? 0 : prev + 1)); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
+                        <ChevronRight size={20} />
+                      </button>
+                      <span className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                        {activeDishImgIndex + 1} / {dishPhotos.length}
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Лента миниатюр снизу фото блюда */}
+                {dishPhotos.length > 1 && (
+                  <div className="flex gap-2 px-4 py-2.5 overflow-x-auto bg-[#F6F4F1] border-b border-[#EDE9E3]" style={{ scrollbarWidth: 'none' }}>
+                    {dishPhotos.map((ph, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => setActiveDishImgIndex(idx)}
+                        className={`relative h-12 w-16 rounded-md overflow-hidden border-2 shrink-0 transition-all ${activeDishImgIndex === idx ? 'border-[#0D6B60] scale-105 shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                        <img src={ph} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+              <div className="p-5 space-y-4">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-display text-xl font-bold text-[#0F0F0F] leading-tight">{viewDish.name}</h3>
+                  <span className="font-black text-[18px] text-[#0D6B60] shrink-0">{viewDish.price}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Описание</p>
+                  <p className="text-[13px] text-[#4B5563] leading-relaxed bg-[#F6F4F1] p-3 rounded-[12px]">
+                    {viewDish.desc}
+                  </p>
+                </div>
+
+                {/* Секция с Ингредиентами в описании */}
+                {(() => {
+                  const ings = getIngredientsArray(viewDish.ingredients);
+                  if (ings.length === 0) return null;
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider">Состав и ингредиенты</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ings.map((ing, idx) => (
+                          <span key={idx} className="text-[11.5px] bg-[#E0F4F1] text-[#0D6B60] font-medium px-2.5 py-1 rounded-lg border border-[#C7EBE6] flex items-center gap-1">
+                            • {ing}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {activeRoom ? (
+                  <button 
+                    onClick={() => { orderFood(viewDish); }} 
+                    className="btn-primary w-full py-3 text-[13px] flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                    <Utensils size={15} /> Заказать в номер № {activeRoom.roomNo}
+                  </button>
+                ) : (
+                  <div className="text-center p-3 bg-amber-50 border border-amber-200 rounded-[12px]">
+                    <p className="text-[11.5px] text-amber-700 font-medium">
+                      Заказ еды с доставкой станет доступен после заселения в номер.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          );
+        })()}
       </div>
     );
   }
