@@ -3066,7 +3066,7 @@ export default function App() {
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 text-lg">🔒</div>
                 <div>
                   <p className="text-[13px] font-bold text-red-600">Номер занят</p>
-                  <p className="text-[12px] text-red-400 mt-0.5">Свободится {fmtDate(occ.checkOut)}</p>
+                  <p className="text-[12px] text-red-400 mt-0.5">Освободится {fmtDate(occ.checkOut)}</p>
                 </div>
               </div>
             );
