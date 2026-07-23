@@ -3460,8 +3460,8 @@ export default function App() {
                 </span>
               )}
             </button>
-            {/* Кнопка гостевого чата — для всех гостей при включённом чате */}
-            {chatEnabled && (
+            {/* Кнопка гостевого чата — только для гостей с активным заселением при включённом чате */}
+            {chatEnabled && hasConfirmedBooking && (
               <button
                 onClick={() => {
                   setShowChat(true);
