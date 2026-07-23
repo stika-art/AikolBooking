@@ -1419,12 +1419,10 @@ function AdminPanel({
                 <Sparkles size={16} className="text-[#0D6B60]" /> Тексты приветственного экрана
               </h3>
               <p className="text-[11.5px] text-[#6B7280]">
-                Настройте заголовок, подзаголовок и описание приветствия для каждого языка:
+                Настройте заголовок, подзаголовок и описание приветствия:
               </p>
               {[
-                { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.' } },
-                { code: 'kg', flag: '🇰🇬', label: 'Кыргызча', defaults: { welcome: 'Кош келиңиздер', sub: '«Айкөл» мейманканасына', desc: 'Ысык-Көлдүн жээгиндеги жайлуулук, жогорку комфорт жана мыкты кызмат.' } },
-                { code: 'en', flag: '🇬🇧', label: 'English', defaults: { welcome: 'Welcome', sub: 'to "Aikol" Hotel', desc: 'Cozy, premium comfort and faultless service on the shore of Lake Issyk-Kul.' } },
+                { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.' } }
               ].map(({ code, flag, label, defaults }) => {
                 const cur = (welcomeTexts && welcomeTexts[code]) || {};
                 return (
@@ -1991,7 +1989,8 @@ function AdminPanel({
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
   const [step, setStep]           = useState('welcome');
-  const [lang, setLang]           = useState(() => localStorage.getItem('ak_lang') || 'ru');
+  const lang = 'ru';
+  const setLang = () => {};
   const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
   const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
   const [welcomeTexts, setWelcomeTexts] = useState(() => {
@@ -2826,34 +2825,7 @@ export default function App() {
     <div className="min-h-screen welcome-bg flex items-center justify-center p-4" style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(13, 107, 96, 0.3)), url('${welcomeBgUrl}')` }}>
       <div className="welcome-card w-full max-w-sm p-7 sm:p-9 text-center space-y-6 animate-up">
         
-        {/* Переключатель языка / Language Selector */}
-        <div className="flex items-center justify-center gap-1 p-1 rounded-full max-w-[290px] mx-auto"
-          style={{ background: 'rgba(255,255,255,0.18)', border: '1.5px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 16px rgba(0,0,0,0.12)' }}>
-          <button
-            type="button"
-            onClick={() => { setLang('kg'); localStorage.setItem('ak_lang', 'kg'); }}
-            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'kg' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-white/90 hover:text-white'
-            }`}>
-            <span>🇰🇬</span> Кыргызча
-          </button>
-          <button
-            type="button"
-            onClick={() => { setLang('ru'); localStorage.setItem('ak_lang', 'ru'); }}
-            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'ru' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-white/90 hover:text-white'
-            }`}>
-            <span>🇷🇺</span> Русский
-          </button>
-          <button
-            type="button"
-            onClick={() => { setLang('en'); localStorage.setItem('ak_lang', 'en'); }}
-            className={`flex-1 py-1.5 px-2 rounded-full text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-              lang === 'en' ? 'bg-[#0D6B60] text-white shadow-md scale-105' : 'text-white/90 hover:text-white'
-            }`}>
-            <span>🇬🇧</span> English
-          </button>
-        </div>
+
 
         <div className="mx-auto w-[72px] h-[72px] rounded-[22px] bg-[#0D6B60] flex items-center justify-center shadow-[0_12px_32px_rgba(13,107,96,0.4)] cursor-pointer select-none"
           onClick={handleLogoTap}>
@@ -3459,14 +3431,7 @@ export default function App() {
                 )}
               </button>
             )}
-            <select
-              value={lang}
-              onChange={e => { setLang(e.target.value); localStorage.setItem('ak_lang', e.target.value); }}
-              className="bg-[#F6F4F1] border border-[#EDE9E3] rounded-[10px] text-[11px] font-bold px-1.5 h-9 text-[#0D6B60] outline-none cursor-pointer">
-              <option value="kg">🇰🇬 KG</option>
-              <option value="ru">🇷🇺 RU</option>
-              <option value="en">🇬🇧 EN</option>
-            </select>
+
             <button onClick={() => { setInputName(guestName); setInputPhone(guestPhone); setStep('name'); }}
               className="text-[12px] text-[#6B7280] border border-[#E8E4DF] w-9 h-9 shrink-0 rounded-lg flex items-center justify-center hover:bg-[#F6F4F1] transition-all">
               ✏️
