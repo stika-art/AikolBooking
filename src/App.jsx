@@ -2017,11 +2017,11 @@ export default function App() {
   const [showWeatherModal, setShowWeatherModal] = useState(false);
   const [weatherData, setWeatherData] = useState({
     temp: 26,
-    waterTemp: 22,
     condition: 'Солнечно',
     icon: '☀️',
     wind: 4,
-    code: 0
+    code: 0,
+    daily: []
   });
 
   // Гостевой чат
@@ -2051,30 +2051,80 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true');
+        // Точная модель ECMWF IFS 0.25 (используется ведущими метеослужбами)
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max&windspeed_unit=ms&timezone=auto&models=ecmwf_ifs025');
         const data = await res.json();
-        if (data && data.current_weather) {
+        
+        if (data && data.current_weather && data.daily) {
           const t = Math.round(data.current_weather.temperature);
           const wind = Math.round(data.current_weather.windspeed);
           const code = data.current_weather.weathercode;
           
-          let condition = 'Солнечно';
-          let icon = '☀️';
-          if (code === 1 || code === 2) { condition = 'Малооблачно'; icon = '🌤️'; }
-          else if (code === 3) { condition = 'Облачно'; icon = '☁️'; }
-          else if (code >= 51 && code <= 67) { condition = 'Дождь'; icon = '🌧️'; }
-          else if (code >= 80 && code <= 82) { condition = 'Ливень'; icon = '🌦️'; }
+          const getWeatherMeta = (c) => {
+            let cond = 'Солнечно';
+            let ic = '☀️';
+            if (c === 1 || c === 2) { cond = 'Малооблачно'; ic = '🌤️'; }
+            else if (c === 3) { cond = 'Облачно'; ic = '☁️'; }
+            else if (c >= 45 && c <= 48) { cond = 'Туман'; ic = '🌫️'; }
+            else if (c >= 51 && c <= 67) { cond = 'Дождь'; ic = '🌧️'; }
+            else if (c >= 71 && c <= 77) { cond = 'Снег'; ic = '❄️'; }
+            else if (c >= 80 && c <= 82) { cond = 'Ливень'; ic = '🌦️'; }
+            else if (c >= 95 && c <= 99) { cond = 'Гроза'; ic = '⛈️'; }
+            return { cond, ic };
+          };
 
-          const month = new Date().getMonth();
-          let water = 21;
-          if (month >= 5 && month <= 7) water = Math.min(24, Math.max(19, Math.round(t * 0.7 + 4)));
-          else if (month === 8) water = 19;
-          else water = 14;
+          const getSwimStatus = (tMax, wMax, c) => {
+            const isRain = (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (c >= 95 && c <= 99);
+            if (tMax >= 22 && wMax <= 6.5 && !isRain) {
+              return { text: '🏊 Отлично для пляжа', color: 'text-green-700 bg-green-50 border-green-200' };
+            } else if (tMax >= 19 && wMax <= 7.0 && !isRain) {
+              return { text: '⛵ Освежающе, можно купаться', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+            } else {
+              return { text: '❌ Не рекомендуется купаться', color: 'text-red-700 bg-red-50 border-red-200' };
+            }
+          };
 
-          setWeatherData({ temp: t, waterTemp: water, condition, icon, wind, code });
+          const currentMeta = getWeatherMeta(code);
+
+          // Формируем прогноз на 7 дней
+          const dailyForecast = [];
+          const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+          
+          for (let i = 0; i < data.daily.time.length; i++) {
+            const dateStr = data.daily.time[i];
+            const dCode = data.daily.weathercode[i];
+            const tMax = Math.round(data.daily.temperature_2m_max[i]);
+            const tMin = Math.round(data.daily.temperature_2m_min[i]);
+            const wMax = Math.round(data.daily.windspeed_10m_max[i]);
+            
+            const dayOfWeek = daysNames[new Date(dateStr).getDay()];
+            const meta = getWeatherMeta(dCode);
+            const swim = getSwimStatus(tMax, wMax, dCode);
+
+            dailyForecast.push({
+              date: dateStr,
+              dayName: dayOfWeek,
+              tempMax: tMax,
+              tempMin: tMin,
+              wind: wMax,
+              condition: meta.cond,
+              icon: meta.ic,
+              swimText: swim.text,
+              swimColor: swim.color
+            });
+          }
+
+          setWeatherData({
+            temp: t,
+            condition: currentMeta.cond,
+            icon: currentMeta.ic,
+            wind: wind,
+            code: code,
+            daily: dailyForecast
+          });
         }
       } catch (e) {
-        console.log('Weather fetch fallback used');
+        console.log('Weather fetch error:', e);
       }
     };
     fetchWeather();
@@ -3390,11 +3440,10 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button onClick={() => setShowWeatherModal(true)}
-              title="Погода и температура воды"
-              className="h-9 px-2 flex items-center justify-center gap-1 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
+              title="Точный прогноз погоды (ECMWF)"
+              className="h-9 px-2 flex items-center justify-center gap-1.5 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
               <span>{weatherData.icon}</span>
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
-              <span className="hidden sm:inline text-[10px] text-[#6B7280]">· 🌊 +{weatherData.waterTemp}°C</span>
             </button>
             <button onClick={() => setModal('history')}
               className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]">
@@ -4161,45 +4210,52 @@ export default function App() {
         <div className="modal-backdrop animate-scale" onClick={() => setShowWeatherModal(false)}>
           <div className="modal-box space-y-4 text-center max-w-sm" onClick={e => e.stopPropagation()}>
             <div className="w-14 h-14 rounded-full bg-[#E0F4F1] text-[#0D6B60] flex items-center justify-center mx-auto shadow-inner text-3xl">
-              {weatherData.icon}
+              🌤️
             </div>
             
             <div className="space-y-1">
-              <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Погода в Балыкчы & Иссык-Куле</h3>
-              <p className="text-[12px] text-[#6B7280]">
-                Точный прогноз погоды и температура озерной воды
+              <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Погода в Балыкчы</h3>
+              <p className="text-[11.5px] text-[#6B7280]">
+                Точный прогноз по модели ECMWF IFS 0.25 на неделю
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-3.5 rounded-[16px] text-center space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Воздух в Балыкчы</p>
-                <p className="text-2xl font-black text-[#0D6B60]">
+            {/* Текущая погода */}
+            <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-4 rounded-[20px] text-center space-y-2">
+              <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Текущая погода</p>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-4xl">{weatherData.icon}</span>
+                <span className="text-3xl font-black text-[#0D6B60]">
                   {weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C
-                </p>
-                <p className="text-[11px] font-semibold text-[#0F0F0F]">{weatherData.condition}</p>
+                </span>
               </div>
-
-              <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-3.5 rounded-[16px] text-center space-y-1">
-                <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Вода Иссык-Куля</p>
-                <p className="text-2xl font-black text-[#0D6B60]">
-                  +{weatherData.waterTemp}°C
-                </p>
-                <p className="text-[11px] font-semibold text-[#0F0F0F]">🌊 Озерная вода</p>
+              <div className="flex justify-center gap-4 text-[12px] text-[#374151] font-medium">
+                <span>{weatherData.condition}</span>
+                <span>•</span>
+                <span className="flex items-center gap-1"><Wind size={13} className="text-[#0D6B60]" /> Ветер: {weatherData.wind} м/с</span>
               </div>
             </div>
 
-            <div className="bg-[#F6F4F1] border border-[#EDE9E3] p-3.5 rounded-[16px] text-left space-y-2 text-[12px]">
-              <div className="flex justify-between items-center">
-                <span className="text-[#6B7280] flex items-center gap-1.5"><Wind size={14} className="text-[#0D6B60]" /> Скорость ветра:</span>
-                <span className="font-bold text-[#0F0F0F]">{weatherData.wind} м/с</span>
-              </div>
-              <div className="divider" />
-              <div className="flex justify-between items-center">
-                <span className="text-[#6B7280] flex items-center gap-1.5"><Waves size={14} className="text-[#0D6B60]" /> Статус для купания:</span>
-                <span className="font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded text-[11px]">
-                  {weatherData.waterTemp >= 19 ? '🏊 Отлично для пляжа' : '⛵ Освежающе'}
-                </span>
+            {/* Прогноз на неделю */}
+            <div className="space-y-2.5 text-left">
+              <h4 className="text-[12px] font-bold text-[#0F0F0F] uppercase tracking-wide px-1">Прогноз на 7 дней</h4>
+              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                {weatherData.daily && weatherData.daily.map((day, idx) => (
+                  <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[16px] p-3 flex items-center justify-between gap-2 shadow-sm">
+                    <div className="flex items-center gap-2.5 min-w-[70px]">
+                      <span className="text-[13px] font-bold text-[#0F0F0F] w-6">{day.dayName}</span>
+                      <span className="text-xl shrink-0">{day.icon}</span>
+                    </div>
+                    <div className="text-[12px] text-[#374151] font-semibold">
+                      <span className="text-blue-500">+{day.tempMin}°</span>
+                      <span className="mx-1 text-[#C4BDB5]">/</span>
+                      <span className="text-red-500">+{day.tempMax}°</span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border shrink-0 ${day.swimColor}`}>
+                      {day.swimText}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
 
