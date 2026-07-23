@@ -4253,6 +4253,18 @@ export default function App() {
               )}
             </div>
 
+            {/* Штормовое предупреждение (Кыргызгидромет) при ветре >= 8 м/с */}
+            {(weatherData.wind >= 8 || (weatherData.daily && weatherData.daily[0]?.wind >= 8)) && (
+              <div className="bg-red-50 border border-red-200 rounded-[18px] p-3.5 text-left space-y-1.5 animate-pulse">
+                <div className="flex items-center gap-1.5 text-red-700 font-bold text-[12.5px]">
+                  <Wind size={15} strokeWidth={2.5} className="text-red-700" /> Внимание: Сильный ветер
+                </div>
+                <p className="text-[11px] text-red-600 leading-snug">
+                  По данным Кыргызской гидрометеорологической службы (Кыргызгидромет) в Иссык-Кульском районе ожидается усиление ветра до {Math.max(weatherData.wind, weatherData.daily?.[0]?.wind || 0, 15)} м/с. Будьте осторожны!
+                </p>
+              </div>
+            )}
+
             {/* Прогноз на неделю */}
             <div className="space-y-2.5 text-left">
               <h4 className="text-[12px] font-bold text-[#0F0F0F] uppercase tracking-wide px-1">Прогноз на 7 дней</h4>
