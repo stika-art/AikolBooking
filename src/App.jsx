@@ -4261,9 +4261,9 @@ export default function App() {
                       <span className="text-[11.5px] text-[#6B7280]">{day.condition}</span>
                     </div>
                     <div className="text-[12px] font-bold">
-                      <span className="text-blue-500">+{day.tempMin}°</span>
-                      <span className="mx-1.5 text-[#C4BDB5]">/</span>
                       <span className="text-red-500">+{day.tempMax}°</span>
+                      <span className="mx-1.5 text-[#C4BDB5]">/</span>
+                      <span className="text-blue-500">+{day.tempMin}°</span>
                     </div>
                   </div>
                 ))}
