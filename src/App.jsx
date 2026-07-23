@@ -522,7 +522,8 @@ function AdminPanel({
   chatEnabled,
   setChatEnabled,
   reportClearedAt,
-  setReportClearedAt
+  setReportClearedAt,
+  onClearChat
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
@@ -1376,6 +1377,14 @@ function AdminPanel({
                   }
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={onClearChat}
+                className="w-full py-2.5 text-[11.5px] font-semibold border border-red-200 text-red-500 hover:bg-red-50 rounded-[10px] flex items-center justify-center gap-1.5 transition-colors"
+              >
+                🗑️ Очистить всю историю чата соседей
+              </button>
+              <p className="text-[10px] text-[#A09A92] text-center">Сообщения также автоматически исчезают через 48 часов</p>
             </div>
 
             {/* Настройка фоновых обоев Иссык-Куля */}
@@ -2464,10 +2473,12 @@ export default function App() {
             setChatEnabled(enabled);
           }
 
-          // Сообщения гостевого чата (последние 100, сортированные по времени)
+          // Сообщения гостевого чата (последние 100 за последние 48 часов, сортированные по времени)
+          const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
           const chatMsgs = data
             .filter(d => d.status === 'chat_msg')
             .map(d => ({ ...d.payload, id: d.id }))
+            .filter(m => (Date.now() - (m.ts || 0)) < TWO_DAYS_MS)
             .sort((a, b) => (a.ts || 0) - (b.ts || 0))
             .slice(-100);
 
@@ -2561,7 +2572,7 @@ export default function App() {
             setActiveRoom({ ...booking.roomData, checkIn: booking.checkIn, checkOut: booking.checkOut, phone: booking.phone, bookingId: booking.id });
             const todayStr = new Date().toISOString().slice(0, 10);
             const ACTIVE_STATUSES = ['Подтверждено', 'Заселён', 'Продлён'];
-            const hasConfirmedBooking = (history || []).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+            const hasConfirmedBooking = (history || []).filter(o => myTokens.includes(o.id)).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
 
             setPendingId(null);
             setHistory(orders);
@@ -2871,7 +2882,9 @@ export default function App() {
   const todayStr = new Date().toISOString().slice(0, 10);
   const ACTIVE_STATUSES = ['\u041fодтверждено', '\u0417аселён', '\u041fродлён'];
   // Гость с активной бронью имеет доступ к чату
-  const hasConfirmedBooking = (history || []).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+  const hasConfirmedBooking = (history || [])
+    .filter(o => myTokens.includes(o.id))
+    .some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
 
   // Отправка сообщения в гостевой чат
   const sendChatMessage = async () => {
@@ -2992,6 +3005,21 @@ export default function App() {
       setChatEnabled={setChatEnabled}
       reportClearedAt={reportClearedAt}
       setReportClearedAt={setReportClearedAt}
+      onClearChat={async () => {
+        if (!confirm('Удалить все сообщения из чата соседей? Это действие необратимо.')) return;
+        try {
+          const { data: chatRows } = await supabase.from('orders').select('id').eq('status', 'chat_msg');
+          if (chatRows && chatRows.length > 0) {
+            for (const row of chatRows) {
+              await supabase.from('orders').delete().eq('id', row.id);
+            }
+          }
+          setChatMessages([]);
+          alert('✅ Чат успешно очищен!');
+        } catch (e) {
+          alert('Ошибка при очистке чата.');
+        }
+      }}
     />
   );
 
