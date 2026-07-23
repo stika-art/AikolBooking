@@ -3161,7 +3161,7 @@ export default function App() {
               <ArrowLeft size={16} strokeWidth={2.5} /> Назад
             </button>
             <div className="text-center">
-              <h1 className="font-display text-[17px] font-semibold text-[#0F0F0F]">Ресторан «Айкөл»</h1>
+              <h1 className="font-display text-[17px] font-semibold text-[#0F0F0F]">«Айкөл»</h1>
             </div>
             <div className="w-12"></div>
           </div>
