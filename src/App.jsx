@@ -2083,109 +2083,6 @@ function AdminPanel({
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   HOTEL INFO CARD
-═══════════════════════════════════════════════════════════════ */
-function HotelInfoCard({ photos = [], amenities = [], address = '' }) {
-  const [photoIdx, setPhotoIdx] = useState(0);
-  const touchStartX = useRef(null);
-
-  const prev = () => setPhotoIdx(i => (i - 1 + photos.length) % photos.length);
-  const next = () => setPhotoIdx(i => (i + 1) % photos.length);
-
-  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e) => {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); }
-    touchStartX.current = null;
-  };
-
-  return (
-    <div className="mx-4 mb-5 rounded-[20px] overflow-hidden shadow-[0_4px_24px_rgba(13,107,96,0.12)] border border-[#EDE9E3] bg-white animate-up">
-      {/* Photo Gallery */}
-      {photos.length > 0 && (
-        <div
-          className="relative select-none"
-          style={{ height: 220 }}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
-          <img
-            src={photos[photoIdx]}
-            alt="Экстерьер гостиницы"
-            className="w-full h-full object-cover"
-            style={{ transition: 'opacity 0.35s' }}
-            key={photoIdx}
-          />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-          {/* Nav arrows */}
-          {photos.length > 1 && (
-            <>
-              <button
-                onClick={prev}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10"
-              >‹</button>
-              <button
-                onClick={next}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10"
-              >›</button>
-            </>
-          )}
-
-          {/* Dots */}
-          {photos.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-              {photos.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPhotoIdx(i)}
-                  className={`rounded-full transition-all ${i === photoIdx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50'}`}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Label bottom left */}
-          <div className="absolute bottom-3 left-3 z-10">
-            <span className="text-white text-[11px] font-medium opacity-75">📷 {photoIdx + 1} / {photos.length}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Info block */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="font-display font-bold text-[17px] text-[#0F0F0F] leading-tight">Aikol Hotel</h3>
-            {address && <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {address}</p>}
-          </div>
-          <div className="flex items-center gap-1 bg-[#0D6B60]/10 px-2 py-1 rounded-[8px] shrink-0">
-            <span className="text-[#0D6B60] text-[11px] font-bold">⭐ Отель</span>
-          </div>
-        </div>
-
-        {/* Amenities */}
-        {amenities.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {amenities.map((a, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-[#F6F4F1] text-[#374151] text-[11.5px] font-medium"
-              >
-                <span>{a.icon}</span>
-                <span>{a.label}</span>
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
@@ -2500,6 +2397,8 @@ export default function App() {
 
   const [viewRoom, setViewRoom]       = useState(null);
   const [activeImgIndex, setActiveImgIndex] = useState(0); // Индекс активного фото галереи номера
+  const [viewHotel, setViewHotel]     = useState(false);   // Детальный просмотр гостиницы (экстерьер)
+  const [hotelImgIndex, setHotelImgIndex] = useState(0);   // Индекс фото в просмотре гостиницы
   const [viewDish, setViewDish]       = useState(null); // Детали блюда
   const [activeDishImgIndex, setActiveDishImgIndex] = useState(0); // Индекс активного фото галереи блюда
   const [showMenuScreen, setShowMenuScreen] = useState(false); // Полноценный экран меню
@@ -3281,6 +3180,127 @@ export default function App() {
       </div>
     </div>
   );
+
+  /* ─── HOTEL DETAIL ──────────────────────────────────────────── */
+  if (viewHotel) {
+    const hPhotos = hotelInfo?.photos || [];
+    const hAmenities = hotelInfo?.amenities || [];
+    const currentHPhoto = hPhotos[hotelImgIndex] || hPhotos[0] || '';
+
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
+        <div className="w-full max-w-md flex flex-col" style={{ animation: 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both' }}>
+          {/* Hero photo */}
+          <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0">
+            {currentHPhoto ? (
+              <img src={currentHPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
+            ) : (
+              <div className="w-full h-full bg-[#0D6B60]/20 flex items-center justify-center text-6xl">🏨</div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+            {/* Back button */}
+            <button onClick={() => { setViewHotel(false); setHotelImgIndex(0); }}
+              className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all z-10">
+              <ArrowLeft size={17} strokeWidth={2.5} />
+            </button>
+
+            {/* Hotel badge */}
+            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md z-10">
+              <span className="text-[12px] font-bold text-[#0D6B60]">🏨 Гостиница</span>
+            </div>
+
+            {/* Photo nav arrows */}
+            {hPhotos.length > 1 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev === 0 ? hPhotos.length - 1 : prev - 1)); }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev === hPhotos.length - 1 ? 0 : prev + 1)); }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/60 transition-all">
+                  <ChevronRight size={20} />
+                </button>
+                <span className="absolute bottom-3 right-4 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                  {hotelImgIndex + 1} / {hPhotos.length}
+                </span>
+              </>
+            )}
+
+            {/* Name overlay */}
+            <div className="absolute bottom-4 left-4 right-4">
+              <h1 className="font-display text-white text-[24px] font-semibold leading-tight">Aikol Hotel</h1>
+              <p className="text-white/75 text-[13px] mt-0.5">📍 {hotelAddress}</p>
+            </div>
+          </div>
+
+          {/* Photo thumbnails */}
+          {hPhotos.length > 1 && (
+            <div className="flex gap-2 px-4 pt-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              {hPhotos.map((ph, i) => (
+                <button key={i} onClick={() => setHotelImgIndex(i)}
+                  className={`relative h-14 w-20 rounded-lg overflow-hidden border-2 shrink-0 transition-all ${hotelImgIndex === i ? 'border-[#0D6B60] scale-105 shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}>
+                  <img src={ph} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Info content */}
+          <div className="flex-1 px-4 py-5 space-y-5 overflow-y-auto">
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Локация', value: 'Балыкчы' },
+                { label: 'Иссык-Куль', value: '🏖️ рядом' },
+                { label: 'Рейтинг', value: '★ 4.9' }
+              ].map(s => (
+                <div key={s.label} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 text-center">
+                  <p className="text-[13px] font-bold text-[#0D6B60]">{s.value}</p>
+                  <p className="text-[10px] text-[#A09A92] font-medium mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Amenities */}
+            {hAmenities.length > 0 && (
+              <div className="space-y-2.5">
+                <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider">Удобства и инфраструктура</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {hAmenities.map((a, i) => (
+                    <div key={i} className="bg-white border border-[#EDE9E3] rounded-[12px] px-3 py-2.5 flex items-center gap-2.5">
+                      <span className="text-[18px]">{a.icon}</span>
+                      <span className="text-[12.5px] font-medium text-[#0F0F0F]">{a.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Address block */}
+            <div className="bg-[#F0FAF8] border border-[#C7EBE6] rounded-[14px] p-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] text-[#6B7280] font-medium">Адрес гостиницы</p>
+                <p className="text-[15px] font-bold text-[#0D6B60] leading-tight mt-0.5">{hotelAddress}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] text-[#0D6B60] font-semibold flex items-center gap-1 justify-end">
+                  <MapPin size={10} strokeWidth={2.5} /> Иссык-Куль
+                </p>
+              </div>
+            </div>
+
+            {/* Back button */}
+            <button onClick={() => { setViewHotel(false); setHotelImgIndex(0); }}
+              className="btn-outline w-full py-4 text-[15px] flex items-center justify-center gap-2.5 text-[#0D6B60] border-[#C7EBE6]">
+              <ArrowLeft size={18} /> Вернуться к номерам
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* ─── ROOM DETAIL ───────────────────────────────────────────── */
   if (viewRoom) {
@@ -4125,17 +4145,77 @@ export default function App() {
             <div className="mt-2 mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
           </div>
 
-          {/* Hotel Info Card */}
+          {/* Hotel Card — как карточка номера */}
           {(() => {
-            const photos = hotelInfo?.photos || [];
-            const amenities = hotelInfo?.amenities || [];
-            if (photos.length === 0 && amenities.length === 0) return null;
+            const hPhotos = hotelInfo?.photos || [];
+            const hAmenities = hotelInfo?.amenities || [];
+            if (hPhotos.length === 0 && hAmenities.length === 0) return null;
+            const hCardIdx = hotelImgIndex;
+            const currentHCardPhoto = hPhotos[hCardIdx] || hPhotos[0] || '';
             return (
-              <HotelInfoCard
-                photos={photos}
-                amenities={amenities}
-                address={hotelAddress}
-              />
+              <div
+                className="room-card animate-up cursor-pointer active:scale-[0.98] transition-transform"
+                onClick={() => { setViewHotel(true); setHotelImgIndex(0); }}
+              >
+                {/* Фото */}
+                <div className="relative h-[185px] overflow-hidden bg-[#F6F4F1] group">
+                  {currentHCardPhoto ? (
+                    <img src={currentHCardPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-7xl">🏨</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Стрелки листалки */}
+                  {hPhotos.length > 1 && (
+                    <>
+                      <button type="button"
+                        onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev === 0 ? hPhotos.length - 1 : prev - 1)); }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/70 transition-all z-10">
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button type="button"
+                        onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev + 1) % hPhotos.length); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/70 transition-all z-10">
+                        <ChevronRight size={20} />
+                      </button>
+                      <div className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm z-10">
+                        {hCardIdx + 1} / {hPhotos.length}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Бейдж «Гостиница» */}
+                  <div className="absolute top-3 left-3 bg-[#0D6B60]/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
+                    🏨 Гостиница
+                  </div>
+                  {/* «Подробнее» — правый верхний угол */}
+                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md z-10">
+                    Подробнее →
+                  </div>
+                </div>
+
+                {/* Текстовый блок */}
+                <div className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-display text-[17px] font-semibold text-[#0F0F0F] leading-tight">Aikol Hotel</h3>
+                      <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {hotelAddress}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[11px] text-[#0D6B60] font-semibold">★ 4.9</p>
+                      <p className="text-[11px] text-[#6B7280]">🏖️ Иссык-Куль</p>
+                    </div>
+                  </div>
+                  {hAmenities.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {hAmenities.map((a, i) => (
+                        <span key={i} className="chip flex items-center gap-1">{a.icon} {a.label}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             );
           })()}
 
