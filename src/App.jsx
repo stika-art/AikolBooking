@@ -1345,13 +1345,13 @@ function AdminPanel({
               </form>
             </div>
 
-            {/* Гостевой чат — включение/выключение */}
+            {/* Чат с соседями — включение/выключение */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
-                <MessageCircle size={16} className="text-[#0D6B60]" /> Гостевой чат
+                <MessageCircle size={16} className="text-[#0D6B60]" /> Чат с соседями
               </h3>
               <p className="text-[11.5px] text-[#6B7280]">
-                Когда чат включён — все гости с подтверждённой бронью могут общаться между собой в общем чате.
+                Когда чат включён — все заселённые гости могут переписываться и общаться между собой.
               </p>
               <div className="flex items-center justify-between bg-[#F6F4F1] rounded-[12px] px-4 py-3">
                 <div>
@@ -2107,10 +2107,10 @@ export default function App() {
           const wind = Math.round(data.current_weather.windspeed);
           const code = data.current_weather.weathercode;
           
-          const getWeatherMeta = (c) => {
-            let cond = 'Солнечно';
-            let ic = '☀️';
-            if (c === 1 || c === 2) { cond = 'Малооблачно'; ic = '🌤️'; }
+          const getWeatherMeta = (c, isDay = 1) => {
+            let cond = isDay ? 'Солнечно' : 'Ясно';
+            let ic = isDay ? '☀️' : '🌙';
+            if (c === 1 || c === 2) { cond = 'Малооблачно'; ic = isDay ? '🌤️' : '☁️'; }
             else if (c === 3) { cond = 'Облачно'; ic = '☁️'; }
             else if (c >= 45 && c <= 48) { cond = 'Туман'; ic = '🌫️'; }
             else if (c >= 51 && c <= 67) { cond = 'Дождь'; ic = '🌧️'; }
@@ -2147,7 +2147,7 @@ export default function App() {
             }
           };
 
-          const currentMeta = getWeatherMeta(code);
+          const currentMeta = getWeatherMeta(code, data.current_weather.is_day);
 
           // Формируем прогноз на 7 дней на основе модели MET Norway (данные аналогичны Google Погоде)
           const dailyForecast = [];
@@ -3535,7 +3535,7 @@ export default function App() {
                   setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'auto' }), 150);
                 }}
                 className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]"
-                title="Гостевой чат">
+                title="Чат с соседями">
                 <MessageCircle size={18} strokeWidth={2} />
                 {chatUnread > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none animate-pulse">
@@ -4366,10 +4366,10 @@ export default function App() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] font-bold text-[#0F0F0F] leading-tight">
-                  {lang === 'en' ? 'Guest Chat' : lang === 'kg' ? 'Конок чат' : 'Гостевой чат'}
+                  {lang === 'en' ? 'Neighbors Chat' : lang === 'kg' ? 'Коңшулар чаты' : 'Чат с соседями'}
                 </p>
                 <p className="text-[11px] text-[#6B7280]">
-                  {lang === 'en' ? 'Only confirmed guests' : lang === 'kg' ? 'Текшерилген конокторго гана' : 'Только для заселённых гостей'}
+                  {lang === 'en' ? 'Write to your neighbors in the hotel' : lang === 'kg' ? 'Мейманканадагы коңшуларыңызга жазсаңыз болот' : 'Вы можете написать своим соседям прямо сейчас'}
                 </p>
               </div>
               <button onClick={() => setShowChat(false)}
@@ -4387,7 +4387,7 @@ export default function App() {
                   </div>
                   <p className="text-[14px] font-bold text-[#0F0F0F]">Пока тихо...</p>
                   <p className="text-[12px] text-[#6B7280] max-w-[220px]">
-                    Станьте первым! Познакомьтесь с другими гостями отеля 👋
+                    Станьте первым! Напишите что-нибудь приятное своим соседям 👋
                   </p>
                 </div>
               ) : (
