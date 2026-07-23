@@ -2120,7 +2120,23 @@ export default function App() {
             return { cond, ic };
           };
 
-          const getSwimStatus = (tMax, wMax, c) => {
+          const getSwimStatus = (tMax, wMax, c, isCurrent = false) => {
+            if (isCurrent) {
+              const getBalykchyHour = () => {
+                try {
+                  const options = { timeZone: 'Asia/Bishkek', hour: 'numeric', hour12: false };
+                  const formatter = new Intl.DateTimeFormat('en-US', options);
+                  return parseInt(formatter.format(new Date()), 10);
+                } catch (e) {
+                  return new Date().getHours();
+                }
+              };
+              const hour = getBalykchyHour();
+              if (hour < 8 || hour >= 20) {
+                return { text: '🌙 Ночь, купаться не рекомендуется', color: 'text-red-700 bg-red-50 border-red-200' };
+              }
+            }
+
             const isRain = (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (c >= 95 && c <= 99);
             if (tMax >= 22 && wMax <= 6.5 && !isRain) {
               return { text: '🏊 Отлично для пляжа', color: 'text-green-700 bg-green-50 border-green-200' };
@@ -2161,7 +2177,7 @@ export default function App() {
             });
           }
 
-          const currentSwim = getSwimStatus(t, wind, code);
+          const currentSwim = getSwimStatus(t, wind, code, true);
 
           setWeatherData({
             temp: t,
