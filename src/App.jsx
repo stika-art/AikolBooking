@@ -530,6 +530,7 @@ function AdminPanel({
   const [addressStatus, setAddressStatus] = useState('');
   const [bgStatus, setBgStatus] = useState('');
   const [wtStatus, setWtStatus] = useState('');
+  const [localWelcomeTexts, setLocalWelcomeTexts] = useState(() => welcomeTexts || {});
 
   // Сброс пароля через Telegram
   const [showResetModal, setShowResetModal] = useState(false);
@@ -1426,7 +1427,7 @@ function AdminPanel({
               {[
                 { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.', rating: 'Рейтинг 4.9', safe: 'Безопасно', rest: 'Ресторан' } }
               ].map(({ code, flag, label, defaults }) => {
-                const cur = (welcomeTexts && welcomeTexts[code]) || {};
+                const cur = (localWelcomeTexts && localWelcomeTexts[code]) || {};
                 return (
                   <div key={code} className="border border-[#EDE9E3] rounded-[12px] p-3 space-y-2 bg-[#FAFAF8]">
                     <div className="text-[12px] font-bold text-[#0F0F0F] flex items-center gap-1.5">{flag} {label}</div>
@@ -1447,10 +1448,10 @@ function AdminPanel({
                           value={cur[field] || ''}
                           onChange={e => {
                             const updated = {
-                              ...(welcomeTexts || {}),
-                              [code]: { ...(welcomeTexts?.[code] || {}), [field]: e.target.value }
+                              ...(localWelcomeTexts || {}),
+                              [code]: { ...(localWelcomeTexts?.[code] || {}), [field]: e.target.value }
                             };
-                            setWelcomeTexts(updated);
+                            setLocalWelcomeTexts(updated);
                           }}
                         />
                       </div>
@@ -1466,7 +1467,8 @@ function AdminPanel({
               <button
                 type="button"
                 onClick={async () => {
-                  const texts = welcomeTexts || {};
+                  const texts = localWelcomeTexts || {};
+                  setWelcomeTexts(texts);
                   localStorage.setItem('ak_welcome_texts', JSON.stringify(texts));
                   try {
                     await supabase.from('orders').upsert([{ id: 'app_welcome_texts', status: 'system', payload: texts }]);
