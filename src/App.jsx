@@ -2132,7 +2132,7 @@ export default function App() {
                 }
               };
               const hour = getBalykchyHour();
-              if (hour < 8 || hour >= 20) {
+              if (hour < 6 || hour >= 20) {
                 return { text: '🌙 Ночь, купаться не рекомендуется', color: 'text-red-700 bg-red-50 border-red-200' };
               }
             }
