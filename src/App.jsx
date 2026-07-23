@@ -2055,8 +2055,8 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // Гибридный запрос: текущие фактические наблюдения (best_match) + точный прогноз по дням (icon_seamless)
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max&windspeed_unit=ms&timezone=auto&models=best_match,icon_seamless');
+        // Гибридный запрос: текущие фактические наблюдения (best_match) + прогноз по дням MET Norway (metno_seamless, данные аналогичны Google Погоде)
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max&windspeed_unit=ms&timezone=auto&models=best_match,metno_seamless');
         const data = await res.json();
         
         if (data && data.current_weather && data.daily) {
@@ -2090,16 +2090,16 @@ export default function App() {
 
           const currentMeta = getWeatherMeta(code);
 
-          // Формируем прогноз на 7 дней на основе модели DWD ICON Seamless
+          // Формируем прогноз на 7 дней на основе модели MET Norway (данные аналогичны Google Погоде)
           const dailyForecast = [];
           const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
           
           for (let i = 0; i < data.daily.time.length; i++) {
             const dateStr = data.daily.time[i];
-            const dCode = data.daily.weathercode_icon_seamless[i];
-            const tMax = Math.round(data.daily.temperature_2m_max_icon_seamless[i]);
-            const tMin = Math.round(data.daily.temperature_2m_min_icon_seamless[i]);
-            const wMax = Math.round(data.daily.windspeed_10m_max_icon_seamless[i]);
+            const dCode = data.daily.weathercode_metno_seamless[i];
+            const tMax = Math.round(data.daily.temperature_2m_max_metno_seamless[i]);
+            const tMin = Math.round(data.daily.temperature_2m_min_metno_seamless[i]);
+            const wMax = Math.round(data.daily.windspeed_10m_max_metno_seamless[i]);
             
             const dayOfWeek = daysNames[new Date(dateStr).getDay()];
             const meta = getWeatherMeta(dCode);
@@ -3450,7 +3450,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button onClick={() => setShowWeatherModal(true)}
-              title="Погода в реальном времени (Спутники + ICON)"
+              title="Погода в реальном времени (Спутники + Google)"
               className="h-9 px-2 flex items-center justify-center gap-1.5 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
               <span>{weatherData.icon}</span>
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
@@ -4226,7 +4226,7 @@ export default function App() {
             <div className="space-y-1">
               <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Погода в Балыкчы</h3>
               <p className="text-[11.5px] text-[#6B7280]">
-                Спутниковые наблюдения в реальном времени и прогноз ICON
+                Спутниковые наблюдения в реальном времени и прогноз Google
               </p>
             </div>
 
