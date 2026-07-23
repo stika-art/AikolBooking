@@ -2026,7 +2026,7 @@ export default function App() {
 
   // Гостевой чат
   const [chatEnabled, setChatEnabled] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('ak_chat_enabled') || 'false'); } catch { return false; }
+    try { return JSON.parse(localStorage.getItem('ak_chat_enabled') || 'true'); } catch { return true; }
   });
   const [chatMessages, setChatMessages] = useState([]);
   const [showChat, setShowChat] = useState(false);
@@ -3410,8 +3410,8 @@ export default function App() {
                 </span>
               )}
             </button>
-            {/* Кнопка гостевого чата — только для заселённых при включённом чате */}
-            {chatEnabled && hasConfirmedBooking && (
+            {/* Кнопка гостевого чата — для всех гостей при включённом чате */}
+            {chatEnabled && (
               <button
                 onClick={() => {
                   setShowChat(true);
