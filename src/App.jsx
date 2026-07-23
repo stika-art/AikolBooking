@@ -8,7 +8,8 @@ import {
   History, DoorOpen, Lock, LogOut, Bell, X, Hash,
   RefreshCw, Calendar, CalendarDays, CalendarPlus, Hourglass, Phone, Smartphone,
   ChefHat, Tv, Flame, Bath, Shield, Check, Layers, Refrigerator, Wine, Armchair, WashingMachine,
-  ChevronLeft, ChevronRight, Send, Sun, Thermometer, Droplets
+  ChevronLeft, ChevronRight, Send, Sun, Thermometer, Droplets,
+  MessageCircle, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 const SUPABASE_URL = 'https://matlhjhwsspweqxfwzpw.supabase.co';
@@ -517,7 +518,9 @@ function AdminPanel({
   welcomeBgUrl,
   setWelcomeBgUrl,
   welcomeTexts,
-  setWelcomeTexts
+  setWelcomeTexts,
+  chatEnabled,
+  setChatEnabled
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
@@ -1305,6 +1308,39 @@ function AdminPanel({
               </form>
             </div>
 
+            {/* Гостевой чат — включение/выключение */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                <MessageCircle size={16} className="text-[#0D6B60]" /> Гостевой чат
+              </h3>
+              <p className="text-[11.5px] text-[#6B7280]">
+                Когда чат включён — все гости с подтверждённой бронью могут общаться между собой в общем чате.
+              </p>
+              <div className="flex items-center justify-between bg-[#F6F4F1] rounded-[12px] px-4 py-3">
+                <div>
+                  <p className="text-[13px] font-bold text-[#0F0F0F]">{chatEnabled ? '✅ Чат включён' : '⛔ Чат выключен'}</p>
+                  <p className="text-[11px] text-[#6B7280]">{chatEnabled ? 'Гости могут общаться' : 'Кнопка чата скрыта'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const newVal = !chatEnabled;
+                    setChatEnabled(newVal);
+                    localStorage.setItem('ak_chat_enabled', String(newVal));
+                    try {
+                      await supabase.from('orders').upsert([{ id: 'app_chat_enabled', status: 'system', payload: { enabled: newVal } }]);
+                    } catch(e) {}
+                  }}
+                  className="transition-all"
+                >
+                  {chatEnabled
+                    ? <ToggleRight size={40} className="text-[#0D6B60]" strokeWidth={1.5} />
+                    : <ToggleLeft size={40} className="text-[#C4BDB5]" strokeWidth={1.5} />
+                  }
+                </button>
+              </div>
+            </div>
+
             {/* Настройка фоновых обоев Иссык-Куля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -1989,6 +2025,30 @@ export default function App() {
     code: 0
   });
 
+  // Гостевой чат
+  const [chatEnabled, setChatEnabled] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ak_chat_enabled') || 'false'); } catch { return false; }
+  });
+  const [chatMessages, setChatMessages] = useState([]);
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLastSent, setChatLastSent] = useState(0);
+  const [chatUnread, setChatUnread] = useState(0);
+  const [chatLastSeen, setChatLastSeen] = useState(() => parseInt(localStorage.getItem('ak_chat_last_seen') || '0'));
+  const chatBottomRef = useRef(null);
+
+  useEffect(() => {
+    if (showChat) {
+      const now = Date.now();
+      localStorage.setItem('ak_chat_last_seen', String(now));
+      setChatLastSeen(now);
+      setChatUnread(0);
+      setTimeout(() => {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  }, [showChat, chatMessages]);
+
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -2242,10 +2302,31 @@ export default function App() {
             setWelcomeTexts(wtRow.payload);
           }
 
-          // История заказов (исключая системные записи и отзывы)
-          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg', 'app_welcome_texts'];
+          // Синхронизация настройки гостевого чата
+          const chatRow = data.find(d => d.id === 'app_chat_enabled');
+          if (chatRow && chatRow.payload) {
+            const enabled = chatRow.payload.enabled === true;
+            localStorage.setItem('ak_chat_enabled', String(enabled));
+            setChatEnabled(enabled);
+          }
+
+          // Сообщения гостевого чата (последние 100, сортированные по времени)
+          const chatMsgs = data
+            .filter(d => d.status === 'chat_msg')
+            .map(d => ({ ...d.payload, id: d.id }))
+            .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+            .slice(-100);
+          setChatMessages(chatMsgs);
+
+          // Обновляем счётчик непрочитанных
+          const lastSeen = parseInt(localStorage.getItem('ak_chat_last_seen') || '0');
+          const unread = chatMsgs.filter(m => (m.ts || 0) > lastSeen).length;
+          setChatUnread(unread);
+
+          // История заказов (исключая системные записи, отзывы и сообщения чата)
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg', 'app_welcome_texts', 'app_chat_enabled'];
           const formatted = data
-            .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && !d.id?.startsWith('rev_'))
+            .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && d.status !== 'chat_msg' && !d.id?.startsWith('rev_'))
             .map(d => ({
               ...d.payload,
               id: d.id || d.payload?.id,
@@ -2306,6 +2387,10 @@ export default function App() {
         if (booking) {
           if (booking.status === 'Подтверждено') {
             setActiveRoom({ ...booking.roomData, checkIn: booking.checkIn, checkOut: booking.checkOut, phone: booking.phone, bookingId: booking.id });
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const ACTIVE_STATUSES = ['Подтверждено', 'Заселён', 'Продлён'];
+            const hasConfirmedBooking = (history || []).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+
             setPendingId(null);
             setHistory(orders);
           } else if (booking.status === 'Отменено') {
@@ -2613,6 +2698,28 @@ export default function App() {
   // Проверка занятости номера по данным Supabase (история общая для всех)
   const todayStr = new Date().toISOString().slice(0, 10);
   const ACTIVE_STATUSES = ['\u041fодтверждено', '\u0417аселён', '\u041fродлён'];
+  // Гость с активной бронью имеет доступ к чату
+  const hasConfirmedBooking = (history || []).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+
+  // Отправка сообщения в гостевой чат
+  const sendChatMessage = async () => {
+    const text = chatInput.trim();
+    if (!text) return;
+    const now = Date.now();
+    if (now - chatLastSent < 5000) return; // защита от спама
+    const msgId = `chat_${now}_${Math.random().toString(36).slice(2, 7)}`;
+    const phoneMasked = guestPhone ? `****${guestPhone.slice(-4)}` : '****';
+    const msg = { id: msgId, name: guestName || 'Гость', phone_masked: phoneMasked, text, ts: now };
+    // Оптимистично добавляем сразу
+    setChatMessages(prev => [...prev, msg]);
+    setChatInput('');
+    setChatLastSent(now);
+    try {
+      await supabase.from('orders').upsert([{ id: msgId, status: 'chat_msg', payload: msg }]);
+    } catch(e) {}
+    // Автопрокрутка вниз
+    setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  };
 
   const isRoomOccupied = (room) => {
     if (!room) return false;
@@ -2709,6 +2816,8 @@ export default function App() {
       setWelcomeBgUrl={setWelcomeBgUrl}
       welcomeTexts={welcomeTexts}
       setWelcomeTexts={setWelcomeTexts}
+      chatEnabled={chatEnabled}
+      setChatEnabled={setChatEnabled}
     />
   );
 
@@ -3329,6 +3438,27 @@ export default function App() {
                 </span>
               )}
             </button>
+            {/* Кнопка гостевого чата — только для заселённых при включённом чате */}
+            {chatEnabled && hasConfirmedBooking && (
+              <button
+                onClick={() => {
+                  setShowChat(true);
+                  const now = Date.now();
+                  localStorage.setItem('ak_chat_last_seen', String(now));
+                  setChatLastSeen(now);
+                  setChatUnread(0);
+                  setTimeout(() => chatBottomRef.current?.scrollIntoView({ behavior: 'auto' }), 150);
+                }}
+                className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]"
+                title="Гостевой чат">
+                <MessageCircle size={18} strokeWidth={2} />
+                {chatUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none animate-pulse">
+                    {chatUnread}
+                  </span>
+                )}
+              </button>
+            )}
             <select
               value={lang}
               onChange={e => { setLang(e.target.value); localStorage.setItem('ak_lang', e.target.value); }}
@@ -4116,6 +4246,96 @@ export default function App() {
             <div className="pt-2">
               <button onClick={() => setShowWeatherModal(false)} className="btn-primary w-full py-3 text-[13px]">
                 Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── МОДАЛЬНОЕ ОКНО ГОСТЕВОГО ЧАТА ── */}
+      {showChat && (
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowChat(false); }}>
+          <div className="flex flex-col w-full max-w-md mx-auto h-full max-h-[100dvh] bg-[#FAFAF8] shadow-2xl animate-up">
+            {/* Шапка чата */}
+            <div className="bg-white border-b border-[#EDE9E3] px-4 py-3 flex items-center gap-3 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-[#0D6B60] flex items-center justify-center shrink-0">
+                <MessageCircle size={18} className="text-white" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-bold text-[#0F0F0F] leading-tight">
+                  {lang === 'en' ? 'Guest Chat' : lang === 'kg' ? 'Конок чат' : 'Гостевой чат'}
+                </p>
+                <p className="text-[11px] text-[#6B7280]">
+                  {lang === 'en' ? 'Only confirmed guests' : lang === 'kg' ? 'Текшерилген конокторго гана' : 'Только для заселённых гостей'}
+                </p>
+              </div>
+              <button onClick={() => setShowChat(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F6F4F1] text-[#6B7280] shrink-0">
+                <X size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Список сообщений */}
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              {chatMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-[#E0F4F1] flex items-center justify-center">
+                    <MessageCircle size={28} className="text-[#0D6B60]" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-[14px] font-bold text-[#0F0F0F]">Пока тихо...</p>
+                  <p className="text-[12px] text-[#6B7280] max-w-[220px]">
+                    Станьте первым! Познакомьтесь с другими гостями отеля 👋
+                  </p>
+                </div>
+              ) : (
+                chatMessages.map((msg, i) => {
+                  const isMe = msg.name === (guestName || 'Гость') && msg.phone_masked === (guestPhone ? `****${guestPhone.slice(-4)}` : '****');
+                  const time = msg.ts ? new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                  return (
+                    <div key={msg.id || i} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                      {!isMe && (
+                        <div className="w-7 h-7 shrink-0 rounded-full bg-[#0D6B60]/15 flex items-center justify-center text-[12px] font-bold text-[#0D6B60] mt-auto">
+                          {(msg.name || 'Г')[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+                        {!isMe && (
+                          <span className="text-[10px] font-semibold text-[#6B7280] px-1">{msg.name}</span>
+                        )}
+                        <div className={`px-3 py-2 rounded-2xl text-[13px] leading-snug ${
+                          isMe
+                            ? 'bg-[#0D6B60] text-white rounded-br-sm'
+                            : 'bg-white border border-[#EDE9E3] text-[#0F0F0F] rounded-bl-sm shadow-sm'
+                        }`}>
+                          {msg.text}
+                        </div>
+                        <span className="text-[10px] text-[#A09A92] px-1">{time}</span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Поле ввода */}
+            <div className="shrink-0 bg-white border-t border-[#EDE9E3] px-3 py-3 flex items-end gap-2">
+              <textarea
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
+                placeholder={lang === 'en' ? 'Write a message...' : lang === 'kg' ? 'Билдирүү жазыңыз...' : 'Напишите сообщение...'}
+                className="flex-1 resize-none rounded-[14px] border border-[#EDE9E3] px-3 py-2.5 text-[13px] text-[#0F0F0F] bg-[#F6F4F1] outline-none focus:border-[#0D6B60] transition-colors leading-snug max-h-[100px]"
+                rows={1}
+                style={{ minHeight: '42px' }}
+              />
+              <button
+                onClick={sendChatMessage}
+                disabled={!chatInput.trim() || (Date.now() - chatLastSent < 5000)}
+                className="w-10 h-10 shrink-0 rounded-[12px] flex items-center justify-center transition-all disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #0D6B60, #0a8a7a)' }}>
+                <Send size={16} className="text-white" strokeWidth={2.5} />
               </button>
             </div>
           </div>
