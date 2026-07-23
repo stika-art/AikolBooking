@@ -520,7 +520,9 @@ function AdminPanel({
   welcomeTexts,
   setWelcomeTexts,
   chatEnabled,
-  setChatEnabled
+  setChatEnabled,
+  reportClearedAt,
+  setReportClearedAt
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
@@ -2873,6 +2875,8 @@ export default function App() {
       setWelcomeTexts={setWelcomeTexts}
       chatEnabled={chatEnabled}
       setChatEnabled={setChatEnabled}
+      reportClearedAt={reportClearedAt}
+      setReportClearedAt={setReportClearedAt}
     />
   );
 
