@@ -3396,11 +3396,6 @@ export default function App() {
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
               <span className="hidden sm:inline text-[10px] text-[#6B7280]">· 🌊 +{weatherData.waterTemp}°C</span>
             </button>
-            <button onClick={() => setShowMenuScreen(true)}
-              title="Ресторан и меню"
-              className="w-9 h-9 shrink-0 flex items-center justify-center border border-[#EDE9E3] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60]">
-              <Utensils size={18} strokeWidth={2} />
-            </button>
             <button onClick={() => setModal('history')}
               className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]">
               <History size={18} strokeWidth={2} />
