@@ -563,6 +563,30 @@ function AdminPanel({
     setNewPassInput('');
     setNewPassConfirm('');
   }, []);
+  const tabsRef = useRef(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = (e) => {
+    isDown.current = true;
+    startX.current = e.pageX - tabsRef.current.offsetLeft;
+    scrollLeft.current = tabsRef.current.scrollLeft;
+  };
+  const handleMouseLeave = () => {
+    isDown.current = false;
+  };
+  const handleMouseUp = () => {
+    isDown.current = false;
+  };
+  const handleMouseMove = (e) => {
+    if (!isDown.current) return;
+    e.preventDefault();
+    const x = e.pageX - tabsRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1.5;
+    tabsRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+
   const [filter, setFilter]   = useState('all'); // all | booking | food | edit_rooms | edit_menu
 
   const refresh = () => {
@@ -859,9 +883,9 @@ function AdminPanel({
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md md:max-w-7xl md:px-8 transition-all">
         {/* Header */}
-        <div className="bg-white border-b border-[#EDE9E3] px-5 py-4 flex items-center justify-between sticky top-0 z-30">
+        <div className="bg-white border-b border-[#EDE9E3] px-5 py-4 flex items-center justify-between sticky top-0 z-30 md:rounded-b-2xl md:shadow-sm">
           <div>
             <p className="text-[11px] text-[#B8963A] font-semibold uppercase tracking-wider">Айкөл · Персонал</p>
             <h1 className="text-[15px] font-bold text-[#0F0F0F]">Панель управления</h1>
@@ -892,7 +916,13 @@ function AdminPanel({
         </div>
 
         {/* Tabs */}
-        <div className="px-4 pt-3 flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div ref={tabsRef}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          className="px-4 pt-3 flex gap-1.5 overflow-x-auto select-none cursor-grab active:cursor-grabbing md:flex-wrap md:overflow-x-visible md:cursor-default" 
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
           {[
             {id:'all',      label:'Все'},
             {id:'booking',  label:'🏨 Брони'},
@@ -1019,7 +1049,8 @@ function AdminPanel({
 
             <div className="space-y-3">
               <p className="font-bold text-[13px] text-[#0F0F0F]">Существующие номера ({rooms.length}):</p>
-              {rooms.map(r => (
+              <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+                {rooms.map(r => (
                 <div key={r.id} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 flex items-center justify-between gap-3">
                   <img src={r.img} alt="" className="w-14 h-14 object-cover rounded-lg shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -1037,6 +1068,7 @@ function AdminPanel({
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         )}
@@ -1154,7 +1186,8 @@ function AdminPanel({
 
             <div className="space-y-3">
               <p className="font-bold text-[13px] text-[#0F0F0F]">Существующие блюда ({menuList.length}):</p>
-              {menuList.map(m => (
+              <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+                {menuList.map(m => (
                 <div key={m.id} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 flex items-center justify-between gap-3">
                   <img src={m.img} alt="" className="w-14 h-14 object-cover rounded-lg shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -1171,6 +1204,7 @@ function AdminPanel({
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         )}
@@ -1885,8 +1919,10 @@ function AdminPanel({
               <Bell size={32} className="text-[#D8D3CC] mx-auto" strokeWidth={1.5} />
               <p className="text-[13px] text-[#A09A92] font-medium">Заявок нет</p>
             </div>
-          ) : filtered.map(order => (
-            <div key={order.id} className={`bg-white rounded-[16px] p-4 space-y-3 shadow-sm border ${['Ожидает','Принят'].includes(order.status) ? 'border-amber-200 shadow-amber-50' : 'border-[#EDE9E3]'}`}>
+          ) : (
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
+              {filtered.map(order => (
+                <div key={order.id} className={`bg-white rounded-[16px] p-4 space-y-3 shadow-sm border ${['Ожидает','Принят'].includes(order.status) ? 'border-amber-200 shadow-amber-50' : 'border-[#EDE9E3]'}`}>
               {/* Top */}
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-0.5 flex-1 min-w-0">
@@ -1979,8 +2015,10 @@ function AdminPanel({
                   </button>
                 )}
               </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
           <p className="text-center text-[11px] text-[#A09A92] pb-6">
             Нажмите 🔄 для обновления списка
           </p>
