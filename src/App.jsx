@@ -1424,7 +1424,7 @@ function AdminPanel({
                 Настройте заголовок, подзаголовок и описание приветствия:
               </p>
               {[
-                { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.' } }
+                { code: 'ru', flag: '🇷🇺', label: 'Русский', defaults: { welcome: 'Добро пожаловать', sub: 'в гостиницу «Айкөл»', desc: 'Уют, премиальный комфорт и безупречный сервис на берегу Иссык-Куля.', rating: 'Рейтинг 4.9', safe: 'Безопасно', rest: 'Ресторан' } }
               ].map(({ code, flag, label, defaults }) => {
                 const cur = (welcomeTexts && welcomeTexts[code]) || {};
                 return (
@@ -1434,6 +1434,9 @@ function AdminPanel({
                       { field: 'welcome', placeholder: defaults.welcome, label: 'Заголовок (H1)' },
                       { field: 'sub',     placeholder: defaults.sub,     label: 'Подзаголовок (italic)' },
                       { field: 'desc',    placeholder: defaults.desc,    label: 'Описание (серый текст)' },
+                      { field: 'rating',  placeholder: defaults.rating,  label: 'Статус 1 (Рейтинг)' },
+                      { field: 'safe',    placeholder: defaults.safe,    label: 'Статус 2 (Безопасность)' },
+                      { field: 'rest',    placeholder: defaults.rest,    label: 'Статус 3 (Ресторан / Сервис)' },
                     ].map(({ field, placeholder, label: fLabel }) => (
                       <div key={field}>
                         <label className="text-[10.5px] font-semibold text-[#6B7280] uppercase tracking-wide">{fLabel}</label>
@@ -2908,15 +2911,15 @@ export default function App() {
         <div className="flex items-center justify-center gap-3 py-2.5 px-4 rounded-2xl"
           style={{ background: 'rgba(255,255,255,0.18)', border: '1.5px solid rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 16px rgba(0,0,0,0.12)' }}>
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
-            <Star size={13} className="text-[#B8963A] fill-[#B8963A]" strokeWidth={1} /> {t.rating}
+            <Star size={13} className="text-[#B8963A] fill-[#B8963A]" strokeWidth={1} /> {welcomeTexts?.[lang]?.rating || t.rating}
           </div>
           <span className="w-px h-4 bg-[#6B7280]/40" />
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
-            <ShieldCheck size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.safe}
+            <ShieldCheck size={13} className="text-[#0D6B60]" strokeWidth={2} /> {welcomeTexts?.[lang]?.safe || t.safe}
           </div>
           <span className="w-px h-4 bg-[#6B7280]/40" />
           <div className="flex items-center gap-1.5 text-[11.5px] text-[#1F2937] font-bold">
-            <Utensils size={13} className="text-[#0D6B60]" strokeWidth={2} /> {t.rest}
+            <Utensils size={13} className="text-[#0D6B60]" strokeWidth={2} /> {welcomeTexts?.[lang]?.rest || t.rest}
           </div>
         </div>
 
