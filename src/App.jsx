@@ -2021,6 +2021,8 @@ export default function App() {
     icon: '☀️',
     wind: 4,
     code: 0,
+    swimText: '🏊 Отлично для пляжа',
+    swimColor: 'text-green-700 bg-green-50 border-green-200',
     daily: []
   });
 
@@ -2114,12 +2116,16 @@ export default function App() {
             });
           }
 
+          const currentSwim = getSwimStatus(t, wind, code);
+
           setWeatherData({
             temp: t,
             condition: currentMeta.cond,
             icon: currentMeta.ic,
             wind: wind,
             code: code,
+            swimText: currentSwim.text,
+            swimColor: currentSwim.color,
             daily: dailyForecast
           });
         }
@@ -4221,7 +4227,7 @@ export default function App() {
             </div>
 
             {/* Текущая погода */}
-            <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-4 rounded-[20px] text-center space-y-2">
+            <div className="bg-[#F0FAF8] border border-[#C7EBE6] p-4 rounded-[20px] text-center space-y-3">
               <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Текущая погода</p>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-4xl">{weatherData.icon}</span>
@@ -4234,6 +4240,13 @@ export default function App() {
                 <span>•</span>
                 <span className="flex items-center gap-1"><Wind size={13} className="text-[#0D6B60]" /> Ветер: {weatherData.wind} м/с</span>
               </div>
+              {weatherData.swimText && (
+                <div className="pt-1">
+                  <span className={`text-[11px] font-bold px-3 py-1 rounded-full border inline-block ${weatherData.swimColor}`}>
+                    {weatherData.swimText}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Прогноз на неделю */}
@@ -4241,19 +4254,17 @@ export default function App() {
               <h4 className="text-[12px] font-bold text-[#0F0F0F] uppercase tracking-wide px-1">Прогноз на 7 дней</h4>
               <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                 {weatherData.daily && weatherData.daily.map((day, idx) => (
-                  <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[16px] p-3 flex items-center justify-between gap-2 shadow-sm">
-                    <div className="flex items-center gap-2.5 min-w-[70px]">
+                  <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[16px] p-3 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-2.5">
                       <span className="text-[13px] font-bold text-[#0F0F0F] w-6">{day.dayName}</span>
                       <span className="text-xl shrink-0">{day.icon}</span>
+                      <span className="text-[11.5px] text-[#6B7280]">{day.condition}</span>
                     </div>
-                    <div className="text-[12px] text-[#374151] font-semibold">
+                    <div className="text-[12px] font-bold">
                       <span className="text-blue-500">+{day.tempMin}°</span>
-                      <span className="mx-1 text-[#C4BDB5]">/</span>
+                      <span className="mx-1.5 text-[#C4BDB5]">/</span>
                       <span className="text-red-500">+{day.tempMax}°</span>
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border shrink-0 ${day.swimColor}`}>
-                      {day.swimText}
-                    </span>
                   </div>
                 ))}
               </div>
