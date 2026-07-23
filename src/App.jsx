@@ -523,7 +523,9 @@ function AdminPanel({
   setChatEnabled,
   reportClearedAt,
   setReportClearedAt,
-  onClearChat
+  onClearChat,
+  hotelInfo,
+  setHotelInfo
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
@@ -1387,6 +1389,48 @@ function AdminPanel({
               <p className="text-[10px] text-[#A09A92] text-center">Сообщения также автоматически исчезают через 48 часов</p>
             </div>
 
+            {/* Информация об отеле */}
+            <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
+              <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
+                🏨 Информация об отеле (экстерьер + удобства)
+              </h3>
+              <p className="text-[11px] text-[#A09A92]">Фото и удобства отображаются над списком номеров для гостей.</p>
+
+              {/* Фото экстерьера */}
+              <div className="space-y-2">
+                <p className="text-[12px] font-semibold text-[#374151]">📷 Фотографии (ссылки через запятую):</p>
+                <textarea
+                  rows={3}
+                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60] resize-none"
+                  placeholder="https://... , https://..."
+                  value={(hotelInfo?.photos || []).join(', ')}
+                  onChange={e => {
+                    const urls = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                    setHotelInfo({ ...(hotelInfo || {}), photos: urls });
+                  }}
+                />
+              </div>
+
+              {/* Удобства */}
+              <div className="space-y-2">
+                <p className="text-[12px] font-semibold text-[#374151]">✅ Удобства (каждое с новой строки, формат: 🅿️ Парковка):</p>
+                <textarea
+                  rows={5}
+                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60] resize-none font-mono"
+                  placeholder={"🅿️ Парковка\n🏖️ Выход к озеру\n📶 Wi-Fi"}
+                  value={(hotelInfo?.amenities || []).map(a => `${a.icon} ${a.label}`).join('\n')}
+                  onChange={e => {
+                    const amenities = e.target.value.split('\n').map(line => {
+                      const m = line.match(/^(\S+)\s+(.+)$/);
+                      return m ? { icon: m[1], label: m[2] } : null;
+                    }).filter(Boolean);
+                    setHotelInfo({ ...(hotelInfo || {}), amenities });
+                  }}
+                />
+                <p className="text-[10px] text-[#A09A92]">Первый символ — эмодзи-иконка, затем пробел и название.</p>
+              </div>
+            </div>
+
             {/* Настройка фоновых обоев Иссык-Куля */}
             <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-3 shadow-sm">
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
@@ -2039,6 +2083,109 @@ function AdminPanel({
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   HOTEL INFO CARD
+═══════════════════════════════════════════════════════════════ */
+function HotelInfoCard({ photos = [], amenities = [], address = '' }) {
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const touchStartX = useRef(null);
+
+  const prev = () => setPhotoIdx(i => (i - 1 + photos.length) % photos.length);
+  const next = () => setPhotoIdx(i => (i + 1) % photos.length);
+
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); }
+    touchStartX.current = null;
+  };
+
+  return (
+    <div className="mx-4 mb-5 rounded-[20px] overflow-hidden shadow-[0_4px_24px_rgba(13,107,96,0.12)] border border-[#EDE9E3] bg-white animate-up">
+      {/* Photo Gallery */}
+      {photos.length > 0 && (
+        <div
+          className="relative select-none"
+          style={{ height: 220 }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <img
+            src={photos[photoIdx]}
+            alt="Экстерьер гостиницы"
+            className="w-full h-full object-cover"
+            style={{ transition: 'opacity 0.35s' }}
+            key={photoIdx}
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+          {/* Nav arrows */}
+          {photos.length > 1 && (
+            <>
+              <button
+                onClick={prev}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10"
+              >‹</button>
+              <button
+                onClick={next}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-colors z-10"
+              >›</button>
+            </>
+          )}
+
+          {/* Dots */}
+          {photos.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {photos.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPhotoIdx(i)}
+                  className={`rounded-full transition-all ${i === photoIdx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50'}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Label bottom left */}
+          <div className="absolute bottom-3 left-3 z-10">
+            <span className="text-white text-[11px] font-medium opacity-75">📷 {photoIdx + 1} / {photos.length}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Info block */}
+      <div className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="font-display font-bold text-[17px] text-[#0F0F0F] leading-tight">Aikol Hotel</h3>
+            {address && <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {address}</p>}
+          </div>
+          <div className="flex items-center gap-1 bg-[#0D6B60]/10 px-2 py-1 rounded-[8px] shrink-0">
+            <span className="text-[#0D6B60] text-[11px] font-bold">⭐ Отель</span>
+          </div>
+        </div>
+
+        {/* Amenities */}
+        {amenities.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {amenities.map((a, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-[#F6F4F1] text-[#374151] text-[11.5px] font-medium"
+              >
+                <span>{a.icon}</span>
+                <span>{a.label}</span>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
@@ -2047,6 +2194,23 @@ export default function App() {
   const setLang = () => {};
   const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
   const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
+  const [hotelInfo, setHotelInfo] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ak_hotel_info') || 'null') || {
+        photos: [],
+        amenities: [
+          { icon: '🅿️', label: 'Бесплатная парковка' },
+          { icon: '🏖️', label: 'Выход к Иссык-Кулю' },
+          { icon: '📶', label: 'Wi-Fi на территории' },
+          { icon: '🍽️', label: 'Кухня для гостей' },
+          { icon: '🌿', label: 'Зелёный двор' },
+          { icon: '🛡️', label: 'Видеонаблюдение' },
+        ]
+      };
+    } catch(e) {
+      return { photos: [], amenities: [] };
+    }
+  });
   const [welcomeTexts, setWelcomeTexts] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ak_welcome_texts') || 'null') || null; } catch(e) { return null; }
   });
@@ -3020,6 +3184,11 @@ export default function App() {
           alert('Ошибка при очистке чата.');
         }
       }}
+      hotelInfo={hotelInfo}
+      setHotelInfo={(info) => {
+        setHotelInfo(info);
+        try { localStorage.setItem('ak_hotel_info', JSON.stringify(info)); } catch(e) {}
+      }}
     />
   );
 
@@ -3955,6 +4124,20 @@ export default function App() {
             <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">{t.roomsCatalogTitle}</h2>
             <div className="mt-2 mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
           </div>
+
+          {/* Hotel Info Card */}
+          {(() => {
+            const photos = hotelInfo?.photos || [];
+            const amenities = hotelInfo?.amenities || [];
+            if (photos.length === 0 && amenities.length === 0) return null;
+            return (
+              <HotelInfoCard
+                photos={photos}
+                amenities={amenities}
+                address={hotelAddress}
+              />
+            );
+          })()}
 
           {/* Room Cards */}
           {rooms.map((r, i) => {
