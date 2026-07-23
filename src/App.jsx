@@ -2082,6 +2082,44 @@ export default function App() {
   const [chatUnread, setChatUnread] = useState(0);
   const [chatLastSeen, setChatLastSeen] = useState(() => parseInt(localStorage.getItem('ak_chat_last_seen') || '0'));
   const chatBottomRef = useRef(null);
+  const [chatToast, setChatToast] = useState(null);
+  const lastMsgIdRef = useRef(null);
+
+  const playNotificationSound = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+      gain1.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start();
+      osc1.stop(ctx.currentTime + 0.15);
+      
+      setTimeout(() => {
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, ctx.currentTime);
+        gain2.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start();
+        osc2.stop(ctx.currentTime + 0.25);
+      }, 80);
+    } catch (e) {
+      console.log('Audio error:', e);
+    }
+  };
 
   useEffect(() => {
     if (showChat) {
@@ -2432,6 +2470,24 @@ export default function App() {
             .map(d => ({ ...d.payload, id: d.id }))
             .sort((a, b) => (a.ts || 0) - (b.ts || 0))
             .slice(-100);
+
+          const lastMsg = chatMsgs[chatMsgs.length - 1];
+          if (lastMsg) {
+            const isMe = lastMsg.name === (guestName || 'Гость') && lastMsg.phone_masked === (guestPhone ? `****${guestPhone.slice(-4)}` : '****');
+            if (lastMsgIdRef.current && lastMsgIdRef.current !== lastMsg.id) {
+              if (!isMe) {
+                playNotificationSound();
+                if (!showChat) {
+                  setChatToast({ name: lastMsg.name, text: lastMsg.text });
+                  setTimeout(() => setChatToast(null), 4000);
+                }
+              }
+            }
+            lastMsgIdRef.current = lastMsg.id;
+          } else if (lastMsgIdRef.current === null) {
+            lastMsgIdRef.current = 'none';
+          }
+
           setChatMessages(chatMsgs);
 
           // Обновляем счётчик непрочитанных
@@ -3528,6 +3584,7 @@ export default function App() {
               <button
                 onClick={() => {
                   setShowChat(true);
+                  setChatToast(null);
                   const now = Date.now();
                   localStorage.setItem('ak_chat_last_seen', String(now));
                   setChatLastSeen(now);
@@ -4440,6 +4497,26 @@ export default function App() {
                 <Send size={16} className="text-white" strokeWidth={2.5} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Всплывающее превью нового сообщения (Toast) */}
+      {chatToast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-sm px-4 animate-up">
+          <div onClick={() => { setShowChat(true); setChatToast(null); }}
+            className="cursor-pointer bg-white/90 backdrop-blur-md border border-[#C7EBE6] p-3.5 rounded-[16px] shadow-lg flex items-start gap-3 hover:bg-white transition-all">
+            <div className="w-8 h-8 rounded-full bg-[#E0F4F1] flex items-center justify-center text-[#0D6B60] shrink-0 text-sm">
+              💬
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold text-[#0D6B60] uppercase tracking-wider">Новое от соседа · {chatToast.name}</p>
+              <p className="text-[12.5px] font-semibold text-[#0F0F0F] truncate mt-0.5">{chatToast.text}</p>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); setChatToast(null); }}
+              className="text-[#C4BDB5] hover:text-[#6B7280] p-1 rounded">
+              ✕
+            </button>
           </div>
         </div>
       )}
