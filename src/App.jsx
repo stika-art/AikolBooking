@@ -2051,8 +2051,8 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        // Точная модель ECMWF IFS 0.25 (используется ведущими метеослужбами)
-        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max&windspeed_unit=ms&timezone=auto&models=ecmwf_ifs025');
+        // Точная метеорологическая модель DWD ICON Seamless (Германия, высокое разрешение для Иссык-Куля)
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=42.46&longitude=76.19&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max&windspeed_unit=ms&timezone=auto&models=icon_seamless');
         const data = await res.json();
         
         if (data && data.current_weather && data.daily) {
@@ -3440,7 +3440,7 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button onClick={() => setShowWeatherModal(true)}
-              title="Точный прогноз погоды (ECMWF)"
+              title="Точный прогноз погоды (DWD ICON)"
               className="h-9 px-2 flex items-center justify-center gap-1.5 border border-[#C7EBE6] rounded-[10px] bg-[#E0F4F1] hover:bg-[#cbeee8] transition-all text-[#0D6B60] text-[11px] font-bold shadow-sm">
               <span>{weatherData.icon}</span>
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
@@ -4216,7 +4216,7 @@ export default function App() {
             <div className="space-y-1">
               <h3 className="font-display text-xl font-bold text-[#0F0F0F]">Погода в Балыкчы</h3>
               <p className="text-[11.5px] text-[#6B7280]">
-                Точный прогноз по модели ECMWF IFS 0.25 на неделю
+                Точный прогноз по модели DWD ICON на неделю
               </p>
             </div>
 
