@@ -4387,10 +4387,6 @@ export default function App() {
                     </>
                   )}
 
-                  {/* Верхняя правая плашка */}
-                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10">
-                    ⭐ Отель <span className="font-normal text-[#6B7280]">Балыкчы</span>
-                  </div>
 
                   {/* Нижняя левая плашка статуса */}
                   <div className="absolute bottom-3 left-3 bg-green-500/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
