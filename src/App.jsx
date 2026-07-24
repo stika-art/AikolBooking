@@ -2226,7 +2226,8 @@ function AdminPanel({
    FULLSCREEN GALLERY LIGHTBOX (Увеличение 80% + Свайп)
 ═══════════════════════════════════════════════════════════════ */
 function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onIndexChange }) {
-  const touchStartXRef = useRef(null);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
 
   if (!images || images.length === 0) return null;
 
@@ -2244,25 +2245,32 @@ function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onInde
 
   const handleTouchStart = (e) => {
     touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
   };
 
   const handleTouchEnd = (e) => {
-    if (touchStartXRef.current === null) return;
-    const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
-    if (Math.abs(diffX) > 40) {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const diffX = touchEndX - touchStartXRef.current;
+    const diffY = touchEndY - touchStartYRef.current;
+
+    // Свайп должен быть горизонтальным
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
         handleNext();
       } else {
         handlePrev();
       }
     }
-    touchStartXRef.current = null;
   };
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/92 backdrop-blur-md flex items-center justify-center p-3 animate-scale select-none"
+      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-3 select-none"
       onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Кнопка закрытия */}
       <button 
@@ -2297,12 +2305,10 @@ function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onInde
         </>
       )}
 
-      {/* Фото увеличенное на 80% от экрана со свайпом */}
+      {/* Фото увеличенное на 80% от экрана */}
       <div 
         className="relative max-w-[88vw] max-h-[82vh] flex items-center justify-center cursor-default"
         onClick={e => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
       >
         <img 
           src={currentImg} 
@@ -4452,7 +4458,7 @@ export default function App() {
                 {/* Фото */}
                 <div className="relative h-[185px] overflow-hidden bg-[#F6F4F1] group">
                   {currentHCardPhoto ? (
-                    <img src={currentHCardPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
+                    <img src={currentHCardPhoto} alt="Гостиница Aikol" onClick={(e) => { e.stopPropagation(); setLightboxData({ images: hPhotos, index: hCardIdx }); }} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-7xl">🏨</div>
                   )}
@@ -4558,7 +4564,11 @@ export default function App() {
                 <img 
                   src={currentCardPhoto} 
                   alt={r.name} 
-                  className={`w-full h-full object-cover transition-all duration-300 ${occupied ? 'brightness-75' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxData({ images: roomPhotos, index: cardIdx });
+                  }}
+                  className={`w-full h-full object-cover transition-all duration-300 cursor-zoom-in ${occupied ? 'brightness-75' : ''}`}
                 />
 
                 {/* Слайдер фото для карточки номера */}
