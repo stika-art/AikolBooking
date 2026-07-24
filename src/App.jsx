@@ -2223,6 +2223,99 @@ function AdminPanel({
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   FULLSCREEN GALLERY LIGHTBOX (Увеличение 80% + Свайп)
+═══════════════════════════════════════════════════════════════ */
+function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onIndexChange }) {
+  const touchStartXRef = useRef(null);
+
+  if (!images || images.length === 0) return null;
+
+  const currentImg = images[currentIndex] || images[0];
+
+  const handlePrev = (e) => {
+    e?.stopPropagation();
+    onIndexChange((currentIndex - 1 + images.length) % images.length);
+  };
+
+  const handleNext = (e) => {
+    e?.stopPropagation();
+    onIndexChange((currentIndex + 1) % images.length);
+  };
+
+  const handleTouchStart = (e) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartXRef.current === null) return;
+    const diffX = e.changedTouches[0].clientX - touchStartXRef.current;
+    if (Math.abs(diffX) > 40) {
+      if (diffX < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    touchStartXRef.current = null;
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 bg-black/92 backdrop-blur-md flex items-center justify-center p-3 animate-scale select-none"
+      onClick={onClose}
+    >
+      {/* Кнопка закрытия */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center text-xl font-bold hover:bg-white/35 transition-all z-50 border border-white/30"
+      >
+        ✕
+      </button>
+
+      {/* Счетчик фото */}
+      {images.length > 1 && (
+        <div className="absolute top-4 left-4 bg-black/60 text-white text-[12px] font-bold px-3.5 py-1 rounded-full border border-white/20 backdrop-blur-sm z-50">
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
+
+      {/* Стрелки переключения */}
+      {images.length > 1 && (
+        <>
+          <button 
+            onClick={handlePrev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/70 transition-all z-50 border border-white/30 backdrop-blur-sm"
+          >
+            <ChevronLeft size={26} />
+          </button>
+          <button 
+            onClick={handleNext}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/70 transition-all z-50 border border-white/30 backdrop-blur-sm"
+          >
+            <ChevronRight size={26} />
+          </button>
+        </>
+      )}
+
+      {/* Фото увеличенное на 80% от экрана со свайпом */}
+      <div 
+        className="relative max-w-[88vw] max-h-[82vh] flex items-center justify-center cursor-default"
+        onClick={e => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <img 
+          src={currentImg} 
+          alt="" 
+          className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl transition-all duration-300"
+          key={currentIndex}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
@@ -2558,6 +2651,7 @@ export default function App() {
   const [activeImgIndex, setActiveImgIndex] = useState(0); // Индекс активного фото галереи номера
   const [viewHotel, setViewHotel]     = useState(false);   // Детальный просмотр гостиницы (экстерьер)
   const [hotelImgIndex, setHotelImgIndex] = useState(0);   // Индекс фото в просмотре гостиницы
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Увеличенный просмотр фото (80% + свайп)
   const [viewDish, setViewDish]       = useState(null); // Детали блюда
   const [activeDishImgIndex, setActiveDishImgIndex] = useState(0); // Индекс активного фото галереи блюда
   const [showMenuScreen, setShowMenuScreen] = useState(false); // Полноценный экран меню
@@ -3376,7 +3470,7 @@ export default function App() {
           {/* Hero photo */}
           <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0">
             {currentHPhoto ? (
-              <img src={currentHPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
+              <img src={currentHPhoto} alt="Гостиница Aikol" onClick={() => setIsLightboxOpen(true)} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
             ) : (
               <div className="w-full h-full bg-[#0D6B60]/20 flex items-center justify-center text-6xl">🏨</div>
             )}
@@ -3490,6 +3584,16 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* Увеличенный полноэкранный просмотрщик со свайпом */}
+        {isLightboxOpen && (
+          <FullscreenGalleryModal 
+            images={hPhotos} 
+            currentIndex={hotelImgIndex} 
+            onClose={() => setIsLightboxOpen(false)} 
+            onIndexChange={setHotelImgIndex} 
+          />
+        )}
       </div>
     );
   }
@@ -3503,7 +3607,7 @@ export default function App() {
       <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
         <div className="w-full max-w-md flex flex-col" style={{ animation: 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both' }}>
           <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0 group">
-            <img src={currentPhoto} alt={viewRoom.name} className="w-full h-full object-cover transition-all duration-300" />
+            <img src={currentPhoto} alt={viewRoom.name} onClick={() => setIsLightboxOpen(true)} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
             <button onClick={() => { setViewRoom(null); setActiveImgIndex(0); }} className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all z-10">
               <ArrowLeft size={17} strokeWidth={2.5} />
@@ -3635,6 +3739,16 @@ export default function App() {
             </button>
           )}
         </div>
+
+        {/* Увеличенный полноэкранный просмотрщик номера со свайпом */}
+        {isLightboxOpen && (
+          <FullscreenGalleryModal 
+            images={roomPhotos} 
+            currentIndex={activeImgIndex} 
+            onClose={() => setIsLightboxOpen(false)} 
+            onIndexChange={setActiveImgIndex} 
+          />
+        )}
       </div>
 
       {/* Confirm Modal on detail page */}
