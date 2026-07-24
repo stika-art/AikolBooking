@@ -5037,7 +5037,7 @@ export default function App() {
 
             <div className="overflow-y-auto flex-1 space-y-4 pr-1" style={{ scrollbarWidth: 'none' }}>
               <div className="text-[12px] text-[#4B5563] leading-relaxed bg-[#E0F4F1]/40 border border-[#C7EBE6] p-3.5 rounded-2xl">
-                ✍️ <span className="font-semibold text-[#0D6B60]">Поделитесь своим настроением!</span> Напишите о ваших походах в горы, ярких приключениях на озере Иссык-Куль, интересных открытиях или просто пожелайте хорошего дня будущим путешественникам!
+                ✍️ <span className="font-semibold text-[#0D6B60]">Поделитесь своими историями во время отдыха!</span> Напишите о ваших ярких приключениях во время отдыха, интересных открытиях!
               </div>
 
               {/* Форма написания истории */}
