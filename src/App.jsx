@@ -2264,6 +2264,9 @@ export default function App() {
       stats: defaultStats
     };
   });
+  const lastAdminEditRef = useRef(0);
+  const hotelInfoRef = useRef(hotelInfo);
+  hotelInfoRef.current = hotelInfo;
   const [welcomeTexts, setWelcomeTexts] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ak_welcome_texts') || 'null') || null; } catch(e) { return null; }
   });
@@ -2695,8 +2698,15 @@ export default function App() {
           // Синхронизация информации об отеле (фото экстерьера + удобства)
           const infoRow = data.find(d => d.id === 'app_hotel_info');
           if (infoRow && infoRow.payload) {
-            localStorage.setItem('ak_hotel_info', JSON.stringify(infoRow.payload));
-            setHotelInfo(infoRow.payload);
+            // Если администратор прямо сейчас не редактирует (с последнего ввода прошло больше 4 секунд)
+            if (Date.now() - lastAdminEditRef.current > 4000) {
+              const incomingStr = JSON.stringify(infoRow.payload);
+              const currentStr = JSON.stringify(hotelInfoRef.current || {});
+              if (incomingStr !== currentStr) {
+                localStorage.setItem('ak_hotel_info', incomingStr);
+                setHotelInfo(infoRow.payload);
+              }
+            }
           }
 
           // Сообщения гостевого чата (последние 100 за последние 48 часов, сортированные по времени)
@@ -3248,6 +3258,7 @@ export default function App() {
       }}
       hotelInfo={hotelInfo}
       setHotelInfo={(infoOrFn) => {
+        lastAdminEditRef.current = Date.now();
         setHotelInfo(prev => {
           const next = typeof infoOrFn === 'function' ? infoOrFn(prev) : infoOrFn;
           try { localStorage.setItem('ak_hotel_info', JSON.stringify(next)); } catch(e) {}
