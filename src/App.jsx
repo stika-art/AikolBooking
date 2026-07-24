@@ -525,7 +525,9 @@ function AdminPanel({
   setReportClearedAt,
   onClearChat,
   hotelInfo,
-  setHotelInfo
+  setHotelInfo,
+  storiesList = [],
+  setStoriesList
 }) {
   const [authed, setAuthed]   = useState(false);
   const [pass, setPass]       = useState('');
@@ -936,6 +938,7 @@ function AdminPanel({
             {id:'edit_menu',label:'🍕 Меню'},
             {id:'reports',  label:'📊 Отчётность'},
             {id:'reviews',  label:`⭐ Отзывы (${reviewsList.length})`},
+            {id:'stories',  label:`📖 Истории (${storiesList.length})`},
             {id:'settings', label:'🔒 Настройки & Telegram'},
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)}
@@ -2097,6 +2100,59 @@ function AdminPanel({
                         "{rev.comment}"
                       </p>
                     )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── ВКЛАДКА: ИСТОРИИ ГОСТЕЙ И МОДЕРАЦИЯ ── */}
+        {filter === 'stories' && (
+          <div className="px-4 py-4 space-y-4 animate-up">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold text-[#0F0F0F]">📖 Истории и приключения гостей</h3>
+                <p className="text-[12px] text-[#6B7280]">Модерация историй путешествий и удаление некорректных записей</p>
+              </div>
+              <div className="bg-[#E0F4F1] border border-[#C7EBE6] px-3 py-1.5 rounded-xl text-[12px] font-bold text-[#0D6B60] flex items-center gap-1.5 shadow-sm">
+                <span>📖 Всего историй:</span>
+                <span>{storiesList.length}</span>
+              </div>
+            </div>
+
+            {storiesList.length === 0 ? (
+              <div className="bg-white border border-[#EDE9E3] rounded-[16px] p-8 text-center space-y-2 shadow-sm">
+                <BookOpen size={32} className="text-[#D8D3CC] mx-auto" />
+                <p className="text-[13px] text-[#A09A92] font-medium">Историй пока никто не рассказал</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {storiesList.map(st => (
+                  <div key={st.id} className="bg-white border border-[#EDE9E3] rounded-[16px] p-4 space-y-2.5 shadow-sm border-l-4 border-l-[#0D6B60]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-[13.5px] text-[#0F0F0F]">{st.author}</p>
+                          {st.roomNo && <span className="text-[10px] bg-[#E0F4F1] text-[#0D6B60] font-bold px-2 py-0.5 rounded">Комната {st.roomNo}</span>}
+                        </div>
+                        <p className="text-[11px] text-[#6B7280]">{st.date}</p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Удалить эту историю из дневника приключений?')) return;
+                          const updated = storiesList.filter(s => s.id !== st.id);
+                          setStoriesList(updated);
+                          try { localStorage.setItem('ak_stories', JSON.stringify(updated)); } catch(e){}
+                        }}
+                        className="p-1.5 border border-red-200 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Удалить историю">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <p className="text-[12.5px] text-[#374151] bg-[#FAF9F6] p-3 rounded-[12px] leading-relaxed border border-[#E8E4DF] whitespace-pre-line">
+                      {st.text}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -3444,6 +3500,8 @@ export default function App() {
           return next;
         });
       }}
+      storiesList={storiesList}
+      setStoriesList={setStoriesList}
     />
   );
 
