@@ -2908,7 +2908,7 @@ export default function App() {
             setActiveRoom({ ...booking.roomData, checkIn: booking.checkIn, checkOut: booking.checkOut, phone: booking.phone, bookingId: booking.id });
             const todayStr = new Date().toISOString().slice(0, 10);
             const ACTIVE_STATUSES = ['Подтверждено', 'Заселён', 'Продлён'];
-            const hasConfirmedBooking = (history || []).filter(o => myTokens.includes(o.id)).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+            const hasConfirmedBooking = (history || []).some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status) && (myTokens.includes(o.secretToken) || myTokens.includes(o.id)));
 
             setPendingId(null);
             setHistory(orders);
@@ -3218,9 +3218,28 @@ export default function App() {
   const todayStr = new Date().toISOString().slice(0, 10);
   const ACTIVE_STATUSES = ['\u041fодтверждено', '\u0417аселён', '\u041fродлён'];
   // Гость с активной бронью имеет доступ к чату
-  const hasConfirmedBooking = (history || [])
-    .filter(o => myTokens.includes(o.id))
-    .some(o => o && o.type === 'booking' && ACTIVE_STATUSES.includes(o.status));
+  const hasConfirmedBooking = (history || []).some(o => {
+    if (!o || o.type !== 'booking' || !ACTIVE_STATUSES.includes(o.status)) return false;
+    
+    // Проверяем, авторизован ли этот заказ на данном устройстве
+    const isAuthorized = 
+      (!o.secretToken && !o.pin) || 
+      (o.secretToken && myTokens.includes(o.secretToken)) || 
+      myTokens.includes(o.id);
+      
+    if (!isAuthorized) return false;
+
+    // Проверяем, совпадает ли телефон или имя гостя
+    const curPhone = String(guestPhone || '').trim();
+    const curName  = String(guestName || '').trim().toLowerCase();
+    const oPhone = String(o.phone || '').trim();
+    const oGuest = String(o.guest || '').trim().toLowerCase();
+
+    const phoneMatch = curPhone.length >= 3 && oPhone.length >= 3 && (oPhone.includes(curPhone) || curPhone.includes(oPhone));
+    const nameMatch  = curName.length >= 2 && oGuest.length >= 2 && oGuest === curName;
+
+    return phoneMatch || nameMatch;
+  });
 
   // Отправка сообщения в гостевой чат
   const sendChatMessage = async () => {
