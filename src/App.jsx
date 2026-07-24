@@ -2575,6 +2575,13 @@ export default function App() {
             setChatEnabled(enabled);
           }
 
+          // Синхронизация информации об отеле (фото экстерьера + удобства)
+          const infoRow = data.find(d => d.id === 'app_hotel_info');
+          if (infoRow && infoRow.payload) {
+            localStorage.setItem('ak_hotel_info', JSON.stringify(infoRow.payload));
+            setHotelInfo(infoRow.payload);
+          }
+
           // Сообщения гостевого чата (последние 100 за последние 48 часов, сортированные по времени)
           const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
           const chatMsgs = data
@@ -2609,7 +2616,7 @@ export default function App() {
           setChatUnread(unread);
 
           // История заказов (исключая системные записи, отзывы и сообщения чата)
-          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg', 'app_welcome_texts', 'app_chat_enabled'];
+          const systemIds = ['tg_config', 'app_admin_pass', 'app_rooms', 'app_menu', 'app_report_cleared_at', 'app_welcome_bg', 'app_welcome_texts', 'app_chat_enabled', 'app_hotel_info'];
           const formatted = data
             .filter(d => !systemIds.includes(d.id) && d.status !== 'review' && d.status !== 'chat_msg' && !d.id?.startsWith('rev_'))
             .map(d => ({
@@ -3123,9 +3130,13 @@ export default function App() {
         }
       }}
       hotelInfo={hotelInfo}
-      setHotelInfo={(info) => {
-        setHotelInfo(info);
-        try { localStorage.setItem('ak_hotel_info', JSON.stringify(info)); } catch(e) {}
+      setHotelInfo={(infoOrFn) => {
+        setHotelInfo(prev => {
+          const next = typeof infoOrFn === 'function' ? infoOrFn(prev) : infoOrFn;
+          try { localStorage.setItem('ak_hotel_info', JSON.stringify(next)); } catch(e) {}
+          supabase.from('orders').upsert([{ id: 'app_hotel_info', status: 'system', payload: next }]).catch(() => {});
+          return next;
+        });
       }}
     />
   );
