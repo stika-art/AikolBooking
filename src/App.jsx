@@ -2343,7 +2343,7 @@ export default function App() {
       }
     } catch(e) {}
     return {
-      description: 'Уютный отель «Aikol» расположен в городе Балыкчы на самом берегу Иссык-Куля. Комфортабельные номера, идеальный сервис, ухоженная территория и тёплая атмосфера для вашего идеального отдыха.',
+      description: 'Уютная гостиница «Aikol» расположена в городе Балыкчы на самом берегу Иссык-Куля. Комфортабельные номера, идеальный сервис, ухоженная территория и тёплая атмосфера для вашего идеального отдыха.',
       rating: '★ 4.9',
       photos: [],
       amenities: [
@@ -3506,7 +3506,7 @@ export default function App() {
 
             {/* Name overlay */}
             <div className="absolute bottom-4 left-4 right-4">
-              <h1 className="font-display text-white text-[24px] font-semibold leading-tight">Aikol Hotel</h1>
+              <h1 className="font-display text-white text-[24px] font-semibold leading-tight">Гостиница «Aikol»</h1>
               <p className="text-white/75 text-[13px] mt-0.5">📍 {hotelAddress}</p>
             </div>
           </div>
@@ -4512,7 +4512,7 @@ export default function App() {
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-display text-[17px] font-semibold text-[#0F0F0F] leading-tight">Aikol Hotel</h3>
+                      <h3 className="font-display text-[17px] font-semibold text-[#0F0F0F] leading-tight">Гостиница «Aikol»</h3>
                       <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {hotelAddress}</p>
                     </div>
                     <div className="shrink-0 text-right">
