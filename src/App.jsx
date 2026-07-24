@@ -2267,7 +2267,7 @@ function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onInde
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-3 select-none"
+      className="fixed inset-0 z-50 bg-[#0A0A0A] flex flex-col items-center justify-center p-3 select-none"
       onClick={onClose}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -2313,7 +2313,7 @@ function FullscreenGalleryModal({ images = [], currentIndex = 0, onClose, onInde
         <img 
           src={currentImg} 
           alt="" 
-          className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl transition-all duration-300"
+          className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl"
           key={currentIndex}
         />
       </div>
