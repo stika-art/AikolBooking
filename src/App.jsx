@@ -3480,7 +3480,7 @@ export default function App() {
             ) : (
               <div className="w-full h-full bg-[#0D6B60]/20 flex items-center justify-center text-6xl">🏨</div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
 
             {/* Back button */}
             <button onClick={() => { setViewHotel(false); setHotelImgIndex(0); }}
@@ -3606,7 +3606,7 @@ export default function App() {
         <div className="w-full max-w-md flex flex-col" style={{ animation: 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both' }}>
           <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0 group">
             <img src={currentPhoto} alt={viewRoom.name} onClick={() => setLightboxData({ images: roomPhotos, index: activeImgIndex })} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
             <button onClick={() => { setViewRoom(null); setActiveImgIndex(0); }} className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all z-10">
               <ArrowLeft size={17} strokeWidth={2.5} />
             </button>
