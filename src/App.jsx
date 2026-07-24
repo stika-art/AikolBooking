@@ -2651,7 +2651,7 @@ export default function App() {
   const [activeImgIndex, setActiveImgIndex] = useState(0); // Индекс активного фото галереи номера
   const [viewHotel, setViewHotel]     = useState(false);   // Детальный просмотр гостиницы (экстерьер)
   const [hotelImgIndex, setHotelImgIndex] = useState(0);   // Индекс фото в просмотре гостиницы
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Увеличенный просмотр фото (80% + свайп)
+  const [lightboxData, setLightboxData] = useState(null); // { images: [], index: 0 }
   const [viewDish, setViewDish]       = useState(null); // Детали блюда
   const [activeDishImgIndex, setActiveDishImgIndex] = useState(0); // Индекс активного фото галереи блюда
   const [showMenuScreen, setShowMenuScreen] = useState(false); // Полноценный экран меню
@@ -3470,7 +3470,7 @@ export default function App() {
           {/* Hero photo */}
           <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0">
             {currentHPhoto ? (
-              <img src={currentHPhoto} alt="Гостиница Aikol" onClick={() => setIsLightboxOpen(true)} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
+              <img src={currentHPhoto} alt="Гостиница Aikol" onClick={() => setLightboxData({ images: hPhotos, index: hotelImgIndex })} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
             ) : (
               <div className="w-full h-full bg-[#0D6B60]/20 flex items-center justify-center text-6xl">🏨</div>
             )}
@@ -3585,15 +3585,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Увеличенный полноэкранный просмотрщик со свайпом */}
-        {isLightboxOpen && (
-          <FullscreenGalleryModal 
-            images={hPhotos} 
-            currentIndex={hotelImgIndex} 
-            onClose={() => setIsLightboxOpen(false)} 
-            onIndexChange={setHotelImgIndex} 
-          />
-        )}
+
       </div>
     );
   }
@@ -3607,7 +3599,7 @@ export default function App() {
       <div className="min-h-screen bg-[#FAFAF8] flex justify-center">
         <div className="w-full max-w-md flex flex-col" style={{ animation: 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both' }}>
           <div className="relative h-[55vw] max-h-[300px] min-h-[220px] overflow-hidden shrink-0 group">
-            <img src={currentPhoto} alt={viewRoom.name} onClick={() => setIsLightboxOpen(true)} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
+            <img src={currentPhoto} alt={viewRoom.name} onClick={() => setLightboxData({ images: roomPhotos, index: activeImgIndex })} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
             <button onClick={() => { setViewRoom(null); setActiveImgIndex(0); }} className="absolute top-4 left-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-white/30 transition-all z-10">
               <ArrowLeft size={17} strokeWidth={2.5} />
@@ -3740,15 +3732,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Увеличенный полноэкранный просмотрщик номера со свайпом */}
-        {isLightboxOpen && (
-          <FullscreenGalleryModal 
-            images={roomPhotos} 
-            currentIndex={activeImgIndex} 
-            onClose={() => setIsLightboxOpen(false)} 
-            onIndexChange={setActiveImgIndex} 
-          />
-        )}
+
       </div>
 
       {/* Confirm Modal on detail page */}
@@ -4468,7 +4452,7 @@ export default function App() {
                 {/* Фото */}
                 <div className="relative h-[185px] overflow-hidden bg-[#F6F4F1] group">
                   {currentHCardPhoto ? (
-                    <img src={currentHCardPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
+                    <img src={currentHCardPhoto} alt="Гостиница Aikol" onClick={(e) => { e.stopPropagation(); setLightboxData({ images: hPhotos, index: hCardIdx }); }} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-7xl">🏨</div>
                   )}
@@ -4574,7 +4558,11 @@ export default function App() {
                 <img 
                   src={currentCardPhoto} 
                   alt={r.name} 
-                  className={`w-full h-full object-cover transition-all duration-300 ${occupied ? 'brightness-75' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxData({ images: roomPhotos, index: cardIdx });
+                  }}
+                  className={`w-full h-full object-cover transition-all duration-300 cursor-zoom-in ${occupied ? 'brightness-75' : ''}`}
                 />
 
                 {/* Слайдер фото для карточки номера */}
@@ -5144,6 +5132,16 @@ export default function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Глобальный увеличенный полноэкранный Lightbox для всех фото */}
+      {lightboxData && (
+        <FullscreenGalleryModal 
+          images={lightboxData.images} 
+          currentIndex={lightboxData.index} 
+          onClose={() => setLightboxData(null)} 
+          onIndexChange={(newIdx) => setLightboxData(prev => (prev ? { ...prev, index: newIdx } : null))} 
+        />
       )}
     </div>
   );
