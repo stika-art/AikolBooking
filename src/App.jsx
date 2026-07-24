@@ -4985,13 +4985,27 @@ export default function App() {
                   </div>
                   <div className="divider" />
                   <button onClick={async () => {
-                    if (!confirm('Очистить вашу историю?')) return;
-                    const myIds = myHistory.map(h => h.id);
-                    const updated = history.filter(h => !myIds.includes(h.id));
+                    // Удаляем только завершенные/отмененные записи (неактивные)
+                    const removableHistory = myHistory.filter(item => {
+                      if (item.type === 'booking') {
+                        return !['Подтверждено', 'Заселён', 'Продлён', 'Новый'].includes(item.status);
+                      }
+                      return !['Ожидает', 'Принят', 'В работе', 'Готовится'].includes(item.status);
+                    });
+
+                    if (removableHistory.length === 0) {
+                      alert('Нет завершенных записей для очистки. Активные бронирования и запросы не могут быть удалены.');
+                      return;
+                    }
+
+                    if (!confirm(`Очистить историю? Будет удалено записей: ${removableHistory.length}. Активные бронирования и запросы останутся.`)) return;
+
+                    const removeIds = removableHistory.map(h => h.id);
+                    const updated = history.filter(h => !removeIds.includes(h.id));
                     setHistory(updated);
                     try { localStorage.setItem('ak_history', JSON.stringify(updated)); } catch(e){}
-                    if (myIds.length > 0) {
-                      try { await supabase.from('orders').delete().in('id', myIds); } catch(e){}
+                    if (removeIds.length > 0) {
+                      try { await supabase.from('orders').delete().in('id', removeIds); } catch(e){}
                     }
                   }}
                     className="flex items-center gap-1.5 text-[12px] text-red-400 hover:text-red-600 font-semibold">
