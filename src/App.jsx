@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
-  ArrowRight, MapPin, Star, ShieldCheck, Utensils,
+  ArrowRight, MapPin, Star, ShieldCheck, Utensils, BookOpen,
   User, KeyRound, Clock, Trash2, AlertCircle,
   ArrowLeft, CheckCircle2, Sparkles, Bed, Trees, Wifi,
   Wind, Coffee, Waves, Users, Package, Eye, Zap, UserCheck,
@@ -2599,6 +2599,61 @@ export default function App() {
   const [ratingComment, setRatingComment] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
 
+  const [storiesList, setStoriesList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ak_stories');
+      if (saved) return JSON.parse(saved);
+      const defaultStories = [
+        {
+          id: 'story_1',
+          author: 'Екатерина',
+          text: 'Вчера ходили в ущелье Кок-Мойнок! Это что-то невероятное. Скалы причудливой формы, чистейший горный воздух. Иссык-Куль отсюда кажется бескрайним морем. Обязательно берите с собой удобную обувь и больше воды! Всем отличного отдыха.',
+          date: '20.07.2026',
+          roomNo: '102'
+        },
+        {
+          id: 'story_2',
+          author: 'Данияр',
+          text: 'Рекомендую съездить на южный берег и встретить там закат. А в Айкөл самые лучшие завтраки, особенно сырники! Огромное спасибо персоналу за заботу и гостеприимство.',
+          date: '22.07.2026',
+          roomNo: '105'
+        }
+      ];
+      localStorage.setItem('ak_stories', JSON.stringify(defaultStories));
+      return defaultStories;
+    } catch(e) {
+      return [];
+    }
+  });
+  const [storyText, setStoryText] = useState('');
+  const [storyAuthor, setStoryAuthor] = useState('');
+  const [storySuccess, setStorySuccess] = useState(false);
+
+  const handleSendStory = (e) => {
+    e.preventDefault();
+    if (!storyText.trim()) return;
+
+    const newStory = {
+      id: `story_${Date.now()}`,
+      author: storyAuthor.trim() || guestName || 'Путешественник',
+      text: storyText.trim(),
+      date: new Date().toLocaleDateString('ru-RU'),
+      roomNo: (typeof myActiveRoomsList !== 'undefined' && myActiveRoomsList?.[0]?.roomNo) || (activeRoom && activeRoom.roomNo) || ''
+    };
+
+    const updatedStories = [newStory, ...storiesList];
+    setStoriesList(updatedStories);
+    try { localStorage.setItem('ak_stories', JSON.stringify(updatedStories)); } catch(err){}
+
+    const tgMsg = `📖 *Новая история гостя!*\n\n*Автор:* ${newStory.author}\n*История:* "${newStory.text}"`;
+    sendTelegramNotification(tgMsg);
+
+    setStoryText('');
+    setStoryAuthor('');
+    setStorySuccess(true);
+    setTimeout(() => setStorySuccess(false), 3000);
+  };
+
   const handleSendFeedback = async (e, roomNo) => {
     e.preventDefault();
     const newReview = {
@@ -4119,14 +4174,25 @@ export default function App() {
               <span>{weatherData.icon}</span>
               <span>{weatherData.temp > 0 ? `+${weatherData.temp}` : weatherData.temp}°C</span>
             </button>
-            <button onClick={() => setModal('history')}
-              className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]">
+             <button onClick={() => setModal('history')}
+              className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]"
+              title="История бронирований">
               <History size={18} strokeWidth={2} />
               {history.length > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-[17px] h-[17px] bg-[#0D6B60] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
                   {history.length}
                 </span>
               )}
+            </button>
+            <button onClick={() => setModal('reviews')}
+              className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]"
+              title="Отзывы гостей">
+              <Star size={17} strokeWidth={2.2} />
+            </button>
+            <button onClick={() => setModal('stories')}
+              className="relative w-9 h-9 shrink-0 flex items-center justify-center border border-[#E8E4DF] rounded-[10px] hover:bg-[#F6F4F1] transition-all text-[#6B7280]"
+              title="Истории гостей">
+              <BookOpen size={17} strokeWidth={2.2} />
             </button>
             {/* Кнопка гостевого чата — только для гостей с активным заселением при включённом чате */}
             {chatEnabled && hasConfirmedBooking && (
@@ -4427,46 +4493,6 @@ export default function App() {
                     </div>
                   </div>
                 ))}
-
-                {/* ⭐ Виджет отзыва о проживании */}
-                <div className="bg-white border border-[#EDE9E3] rounded-[20px] p-4 space-y-3 shadow-sm animate-up">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <p className="text-[11px] font-bold text-[#B8963A] uppercase tracking-wider">{t.reviewTitle}</p>
-                      <h4 className="font-display text-base font-bold text-[#0F0F0F]">{t.reviewHeader}</h4>
-                    </div>
-                    <span className="text-xl">⭐</span>
-                  </div>
-
-                  {feedbackSent ? (
-                    <div className="bg-green-50 border border-green-200 rounded-[12px] p-3 text-center space-y-1 animate-scale">
-                      <p className="text-[13px] font-bold text-green-700">{t.thanksReview} 🙏</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={(e) => handleSendFeedback(e, myActiveRoomsList[0]?.roomNo)} className="space-y-3">
-                      <div className="flex items-center justify-center gap-2 py-1">
-                        {[1, 2, 3, 4, 5].map(star => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setRatingStars(star)}
-                            className={`text-2xl transition-transform ${star <= ratingStars ? 'scale-110 opacity-100' : 'opacity-30 scale-90'}`}>
-                            ⭐
-                          </button>
-                        ))}
-                      </div>
-                      <textarea
-                        className="input-soft text-[12px] min-h-[65px] resize-none"
-                        placeholder={t.reviewPlaceholder}
-                        value={ratingComment}
-                        onChange={e => setRatingComment(e.target.value)}
-                      />
-                      <button type="submit" className="btn-primary w-full py-2.5 text-[12.5px] flex items-center justify-center gap-1.5">
-                        <Send size={14} /> {t.sendReviewBtn}
-                      </button>
-                    </form>
-                  )}
-                </div>
               </div>
             );
           })()}
@@ -4676,44 +4702,7 @@ export default function App() {
             </div>
           );})}
 
-          {/* ── ПУБЛИЧНЫЙ БЛОК: ОТЗЫВЫ НАШИХ ГОСТЕЙ ── */}
-          {reviewsList && reviewsList.length > 0 && (
-            <div className="pt-4 space-y-3 animate-up">
-              <div className="text-center py-2">
-                <span className="text-[11px] font-semibold text-[#B8963A] uppercase tracking-widest flex items-center justify-center gap-1.5">
-                  <Star size={12} fill="#B8963A" className="text-[#B8963A]" />
-                  {t.reviewsTitle} ({(reviewsList.reduce((a, r) => a + (parseInt(r?.stars) || 5), 0) / (reviewsList.length || 1)).toFixed(1)} / 5.0 ⭐)
-                </span>
-                <div className="mt-1.5 mx-auto w-10 h-[2px] rounded-full bg-[#B8963A]" />
-              </div>
 
-              <div className="space-y-3">
-                {reviewsList.slice(0, 10).map(rev => (
-                  <div key={rev.id || Math.random()} className="bg-white border border-[#EDE9E3] rounded-[18px] p-4 space-y-2 shadow-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="font-bold text-[13px] text-[#0F0F0F]">{rev.guest || t.guestNameDefault}</p>
-                        {rev.roomNo && (
-                          <p className="text-[10.5px] text-[#0D6B60] font-semibold">
-                            {lang === 'en' ? `Stayed in room #${rev.roomNo}` : lang === 'kg' ? `№ ${rev.roomNo} бөлмөсүндө жашаган` : `Проживал(а) в номере № ${rev.roomNo}`}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-[12px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        {'⭐'.repeat(Math.max(1, Math.min(5, parseInt(rev?.stars) || 5)))} <span className="text-[10px] text-[#0F0F0F]">({parseInt(rev?.stars) || 5}/5)</span>
-                      </div>
-                    </div>
-                    {rev.comment && (
-                      <p className="text-[12.5px] text-[#4B5563] bg-[#F6F4F1] p-3 rounded-[12px] leading-relaxed border border-[#E8E4DF]">
-                        "{rev.comment}"
-                      </p>
-                    )}
-                    <p className="text-[10px] text-[#A09A92] text-right">{rev.date}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -4945,6 +4934,171 @@ export default function App() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── REVIEWS MODAL ── */}
+      {modal === 'reviews' && (
+        <div className="modal-backdrop animate-scale">
+          <div className="modal-box space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EDE9E3]">
+              <div>
+                <p className="text-[11px] font-bold text-[#B8963A] uppercase tracking-wider">Отзывы гостей</p>
+                <h3 className="font-display text-lg font-bold text-[#0F0F0F]">Оценка и мнения о гостинице</h3>
+              </div>
+              <button onClick={() => setModal(null)} className="text-[13px] text-[#6B7280] font-semibold hover:text-[#0F0F0F] border border-[#E8E4DF] px-3 py-1.5 rounded-lg">✕ Закрыть</button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-4 pr-1" style={{ scrollbarWidth: 'none' }}>
+              {/* Форма написания отзыва для проживающих гостей */}
+              {hasConfirmedBooking && (
+                <div className="bg-[#FAF8F5] border border-[#EDE9E3] rounded-2xl p-4 space-y-3 shadow-xs">
+                  <h4 className="font-display text-[14px] font-bold text-[#0F0F0F]">Оцените ваше проживание</h4>
+                  {feedbackSent ? (
+                    <div className="bg-green-50 border border-green-200 rounded-[12px] p-3.5 text-center animate-scale">
+                      <p className="text-[12.5px] font-bold text-green-700">Спасибо за ваш отзыв! 🙏</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={(e) => {
+                      const activeRoomNo = (typeof myActiveRoomsList !== 'undefined' && myActiveRoomsList?.[0]?.roomNo) || (activeRoom && activeRoom.roomNo) || '';
+                      handleSendFeedback(e, activeRoomNo);
+                    }} className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 py-1">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRatingStars(star)}
+                            className={`text-2xl transition-transform ${star <= ratingStars ? 'scale-110 opacity-100' : 'opacity-30 scale-90'}`}>
+                            ⭐
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        className="input-soft text-[12px] min-h-[65px] resize-none"
+                        placeholder="Напишите, что вам понравилось или что можно улучшить..."
+                        value={ratingComment}
+                        onChange={e => setRatingComment(e.target.value)}
+                        required
+                      />
+                      <button type="submit" className="btn-primary w-full py-2.5 text-[12.5px] flex items-center justify-center gap-1.5">
+                        <Send size={14} /> Отправить отзыв
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* Список отзывов */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center border-b pb-1">
+                  <h4 className="font-display text-[14px] font-bold text-[#0F0F0F]">Что говорят наши гости</h4>
+                  <span className="text-[11.5px] font-bold text-[#B8963A]">
+                    ★ {(reviewsList.reduce((a, r) => a + (parseInt(r?.stars) || 5), 0) / (reviewsList.length || 1)).toFixed(1)} / 5.0
+                  </span>
+                </div>
+                {reviewsList.length === 0 ? (
+                  <p className="text-[12px] text-[#6B7280] text-center py-4">Отзывов пока нет. Станьте первым!</p>
+                ) : (
+                  reviewsList.map(rev => (
+                    <div key={rev.id || Math.random()} className="bg-white border border-[#EDE9E3] rounded-xl p-3.5 space-y-1.5 shadow-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-bold text-[12px] text-[#0F0F0F]">{rev.guest || 'Гость'}</p>
+                          {rev.roomNo && <p className="text-[10px] text-[#0D6B60] font-semibold">Комната №{rev.roomNo}</p>}
+                        </div>
+                        <div className="text-[11px] font-bold text-amber-500 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-0.5">
+                          {'⭐'.repeat(Math.max(1, Math.min(5, parseInt(rev?.stars) || 5)))}
+                        </div>
+                      </div>
+                      {rev.comment && <p className="text-[12px] text-[#4B5563] italic bg-[#F9F9F8] p-2.5 rounded-lg border border-[#EDE9E3]">"{rev.comment}"</p>}
+                      <p className="text-[9px] text-[#9CA3AF] text-right">{rev.date || ''}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STORIES MODAL ── */}
+      {modal === 'stories' && (
+        <div className="modal-backdrop animate-scale">
+          <div className="modal-box space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EDE9E3]">
+              <div>
+                <p className="text-[11px] font-bold text-[#0D6B60] uppercase tracking-wider">Дневник приключений</p>
+                <h3 className="font-display text-lg font-bold text-[#0F0F0F]">Истории наших гостей</h3>
+              </div>
+              <button onClick={() => setModal(null)} className="text-[13px] text-[#6B7280] font-semibold hover:text-[#0F0F0F] border border-[#E8E4DF] px-3 py-1.5 rounded-lg">✕ Закрыть</button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 space-y-4 pr-1" style={{ scrollbarWidth: 'none' }}>
+              <div className="text-[12px] text-[#4B5563] leading-relaxed bg-[#E0F4F1]/40 border border-[#C7EBE6] p-3.5 rounded-2xl">
+                ✍️ <span className="font-semibold text-[#0D6B60]">Поделитесь своим настроением!</span> Напишите о ваших походах в горы, ярких приключениях на озере Иссык-Куль, интересных открытиях или просто пожелайте хорошего дня будущим путешественникам!
+              </div>
+
+              {/* Форма написания истории */}
+              <div className="bg-[#FAF8F5] border border-[#EDE9E3] rounded-2xl p-4 space-y-3">
+                <h4 className="font-display text-[14px] font-bold text-[#0F0F0F]">Рассказать свою историю</h4>
+                {storySuccess ? (
+                  <div className="bg-green-50 border border-green-200 rounded-[12px] p-3 text-center animate-scale">
+                    <p className="text-[12.5px] font-bold text-green-700">Ваша история опубликована в дневнике! 📖</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendStory} className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Ваше имя</label>
+                      <input 
+                        type="text" 
+                        className="input-soft text-[12px] py-2" 
+                        placeholder="Например, Александр"
+                        value={storyAuthor}
+                        onChange={e => setStoryAuthor(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">История или приключение</label>
+                      <textarea
+                        className="input-soft text-[12px] min-h-[90px] resize-none"
+                        placeholder="Как прошёл ваш день? Что интересного вы увидели?"
+                        value={storyText}
+                        onChange={e => setStoryText(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="btn-primary w-full py-2.5 text-[12.5px] flex items-center justify-center gap-1.5">
+                      <BookOpen size={14} /> Опубликовать историю
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Список историй */}
+              <div className="space-y-3">
+                <h4 className="font-display text-[14px] font-bold text-[#0F0F0F] border-b pb-1">Дневник воспоминаний</h4>
+                {storiesList.length === 0 ? (
+                  <p className="text-[12px] text-[#6B7280] text-center py-4">Историй пока нет. Расскажите о своём приключении первым!</p>
+                ) : (
+                  storiesList.map(st => (
+                    <div key={st.id || Math.random()} className="bg-white border border-[#EDE9E3] rounded-xl p-3.5 space-y-2 shadow-xs border-l-4 border-l-[#0D6B60]">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-[12px] text-[#0D6B60] flex items-center gap-1">
+                          👤 {st.author}
+                          {st.roomNo && <span className="text-[10px] font-normal text-[#6B7280]">(из комнаты {st.roomNo})</span>}
+                        </p>
+                        <p className="text-[9px] text-[#9CA3AF]">{st.date}</p>
+                      </div>
+                      <p className="text-[12px] text-[#374151] leading-relaxed whitespace-pre-line bg-[#FAF9F6] p-3 rounded-lg border border-[#EDE9E3]">
+                        {st.text}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
