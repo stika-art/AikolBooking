@@ -2655,66 +2655,7 @@ export default function App() {
   const [ratingComment, setRatingComment] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
 
-  const [storiesList, setStoriesList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ak_stories');
-      if (saved) return JSON.parse(saved);
-      const defaultStories = [
-        {
-          id: 'story_1',
-          author: 'Екатерина',
-          text: 'Вчера ходили в ущелье Кок-Мойнок! Это что-то невероятное. Скалы причудливой формы, чистейший горный воздух. Иссык-Куль отсюда кажется бескрайним морем. Обязательно берите с собой удобную обувь и больше воды! Всем отличного отдыха.',
-          date: '20.07.2026',
-          roomNo: '102'
-        },
-        {
-          id: 'story_2',
-          author: 'Данияр',
-          text: 'Рекомендую съездить на южный берег и встретить там закат. А в Айкөл самые лучшие завтраки, особенно сырники! Огромное спасибо персоналу за заботу и гостеприимство.',
-          date: '22.07.2026',
-          roomNo: '105'
-        }
-      ];
-      localStorage.setItem('ak_stories', JSON.stringify(defaultStories));
-      return defaultStories;
-    } catch(e) {
-      return [];
-    }
-  });
-  const [storyText, setStoryText] = useState('');
-  const [storyAuthor, setStoryAuthor] = useState(() => localStorage.getItem('ak_guest_name') || '');
 
-  useEffect(() => {
-    if (guestName) {
-      setStoryAuthor(guestName);
-    }
-  }, [guestName, modal]);
-  const [storySuccess, setStorySuccess] = useState(false);
-
-  const handleSendStory = (e) => {
-    e.preventDefault();
-    if (!storyText.trim()) return;
-
-    const newStory = {
-      id: `story_${Date.now()}`,
-      author: storyAuthor.trim() || guestName || 'Путешественник',
-      text: storyText.trim(),
-      date: new Date().toLocaleDateString('ru-RU'),
-      roomNo: (typeof myActiveRoomsList !== 'undefined' && myActiveRoomsList?.[0]?.roomNo) || (activeRoom && activeRoom.roomNo) || ''
-    };
-
-    const updatedStories = [newStory, ...storiesList];
-    setStoriesList(updatedStories);
-    try { localStorage.setItem('ak_stories', JSON.stringify(updatedStories)); } catch(err){}
-
-    const tgMsg = `📖 *Новая история гостя!*\n\n*Автор:* ${newStory.author}\n*История:* "${newStory.text}"`;
-    sendTelegramNotification(tgMsg);
-
-    setStoryText('');
-    setStoryAuthor('');
-    setStorySuccess(true);
-    setTimeout(() => setStorySuccess(false), 3000);
-  };
 
   const handleSendFeedback = async (e, roomNo) => {
     e.preventDefault();
@@ -2792,6 +2733,67 @@ export default function App() {
 
   // Новая дата выезда для продления
   const [extendDate, setExtendDate] = useState('');
+
+  const [storiesList, setStoriesList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ak_stories');
+      if (saved) return JSON.parse(saved);
+      const defaultStories = [
+        {
+          id: 'story_1',
+          author: 'Екатерина',
+          text: 'Вчера ходили в ущелье Кок-Мойнок! Это что-то невероятное. Скалы причудливой формы, чистейший горный воздух. Иссык-Куль отсюда кажется бескрайним морем. Обязательно берите с собой удобную обувь и больше воды! Всем отличного отдыха.',
+          date: '20.07.2026',
+          roomNo: '102'
+        },
+        {
+          id: 'story_2',
+          author: 'Данияр',
+          text: 'Рекомендую съездить на южный берег и встретить там закат. А в Айкөл самые лучшие завтраки, особенно сырники! Огромное спасибо персоналу за заботу и гостеприимство.',
+          date: '22.07.2026',
+          roomNo: '105'
+        }
+      ];
+      localStorage.setItem('ak_stories', JSON.stringify(defaultStories));
+      return defaultStories;
+    } catch(e) {
+      return [];
+    }
+  });
+  const [storyText, setStoryText] = useState('');
+  const [storyAuthor, setStoryAuthor] = useState(() => localStorage.getItem('ak_guest_name') || '');
+
+  useEffect(() => {
+    if (guestName) {
+      setStoryAuthor(guestName);
+    }
+  }, [guestName, modal]);
+  const [storySuccess, setStorySuccess] = useState(false);
+
+  const handleSendStory = (e) => {
+    e.preventDefault();
+    if (!storyText.trim()) return;
+
+    const newStory = {
+      id: `story_${Date.now()}`,
+      author: storyAuthor.trim() || guestName || 'Путешественник',
+      text: storyText.trim(),
+      date: new Date().toLocaleDateString('ru-RU'),
+      roomNo: (typeof myActiveRoomsList !== 'undefined' && myActiveRoomsList?.[0]?.roomNo) || (activeRoom && activeRoom.roomNo) || ''
+    };
+
+    const updatedStories = [newStory, ...storiesList];
+    setStoriesList(updatedStories);
+    try { localStorage.setItem('ak_stories', JSON.stringify(updatedStories)); } catch(err){}
+
+    const tgMsg = `📖 *Новая история гостя!*\n\n*Автор:* ${newStory.author}\n*История:* "${newStory.text}"`;
+    sendTelegramNotification(tgMsg);
+
+    setStoryText('');
+    setStoryAuthor(guestName || '');
+    setStorySuccess(true);
+    setTimeout(() => setStorySuccess(false), 3000);
+  };
 
   // Скрытый доступ к админке — 5 тапов на логотип или ссылка /adminaikol
   useEffect(() => {
