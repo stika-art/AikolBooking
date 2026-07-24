@@ -1407,17 +1407,30 @@ function AdminPanel({
                     id="hotel-photo-input"
                     className="hidden"
                     onChange={(e) => {
-                      const files = Array.from(e.target.files);
+                      const files = Array.from(e.target.files || []);
+                      if (!files.length) return;
                       files.forEach(file => {
-                        const reader = new FileReader();
-                        reader.onloadend = async () => {
-                          const compressed = await compressImage(reader.result, 1200, 900, 0.75);
-                          setHotelInfo(prev => ({
-                            ...(prev || {}),
-                            photos: [...(prev?.photos || []), compressed]
-                          }));
-                        };
-                        reader.readAsDataURL(file);
+                        try {
+                          const reader = new FileReader();
+                          reader.onloadend = async () => {
+                            try {
+                              const compressed = await compressImage(reader.result, 800, 600, 0.6);
+                              setHotelInfo(prev => {
+                                const safe = (prev && typeof prev === 'object') ? prev : {};
+                                const currentPhotos = Array.isArray(safe.photos) ? safe.photos : [];
+                                return {
+                                  ...safe,
+                                  photos: [...currentPhotos, compressed]
+                                };
+                              });
+                            } catch(err) {
+                              console.error('Error compressing image:', err);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        } catch(err) {
+                          console.error('Error reading file:', err);
+                        }
                       });
                       e.target.value = '';
                     }}
@@ -2132,20 +2145,25 @@ export default function App() {
   const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
   const [hotelInfo, setHotelInfo] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('ak_hotel_info') || 'null') || {
-        photos: [],
-        amenities: [
-          { icon: '🅿️', label: 'Бесплатная парковка' },
-          { icon: '🏖️', label: 'Выход к Иссык-Кулю' },
-          { icon: '📶', label: 'Wi-Fi на территории' },
-          { icon: '🍽️', label: 'Кухня для гостей' },
-          { icon: '🌿', label: 'Зелёный двор' },
-          { icon: '🛡️', label: 'Видеонаблюдение' },
-        ]
-      };
-    } catch(e) {
-      return { photos: [], amenities: [] };
-    }
+      const parsed = JSON.parse(localStorage.getItem('ak_hotel_info') || 'null');
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return {
+          photos: Array.isArray(parsed.photos) ? parsed.photos : [],
+          amenities: Array.isArray(parsed.amenities) ? parsed.amenities : []
+        };
+      }
+    } catch(e) {}
+    return {
+      photos: [],
+      amenities: [
+        { icon: '🅿️', label: 'Бесплатная парковка' },
+        { icon: '🏖️', label: 'Выход к Иссык-Кулю' },
+        { icon: '📶', label: 'Wi-Fi на территории' },
+        { icon: '🍽️', label: 'Кухня для гостей' },
+        { icon: '🌿', label: 'Зелёный двор' },
+        { icon: '🛡️', label: 'Видеонаблюдение' },
+      ]
+    };
   });
   const [welcomeTexts, setWelcomeTexts] = useState(() => {
     try { return JSON.parse(localStorage.getItem('ak_welcome_texts') || 'null') || null; } catch(e) { return null; }
@@ -3233,8 +3251,9 @@ export default function App() {
 
   /* ─── HOTEL DETAIL ──────────────────────────────────────────── */
   if (viewHotel) {
-    const hPhotos = hotelInfo?.photos || [];
-    const hAmenities = hotelInfo?.amenities || [];
+    const safeInfo = (hotelInfo && typeof hotelInfo === 'object') ? hotelInfo : {};
+    const hPhotos = Array.isArray(safeInfo.photos) ? safeInfo.photos : [];
+    const hAmenities = Array.isArray(safeInfo.amenities) ? safeInfo.amenities : [];
     const currentHPhoto = hPhotos[hotelImgIndex] || hPhotos[0] || '';
 
     return (
@@ -4197,8 +4216,9 @@ export default function App() {
 
           {/* Hotel Card — как карточка номера */}
           {(() => {
-            const hPhotos = hotelInfo?.photos || [];
-            const hAmenities = hotelInfo?.amenities || [];
+            const safeInfo = (hotelInfo && typeof hotelInfo === 'object') ? hotelInfo : {};
+            const hPhotos = Array.isArray(safeInfo.photos) ? safeInfo.photos : [];
+            const hAmenities = Array.isArray(safeInfo.amenities) ? safeInfo.amenities : [];
             if (hPhotos.length === 0 && hAmenities.length === 0) return null;
             const hCardIdx = hotelImgIndex;
             const currentHCardPhoto = hPhotos[hCardIdx] || hPhotos[0] || '';
