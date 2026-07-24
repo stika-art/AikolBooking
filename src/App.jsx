@@ -1394,7 +1394,22 @@ function AdminPanel({
               <h3 className="font-bold text-[14px] text-[#0F0F0F] flex items-center gap-1.5">
                 🏨 Информация об отеле (экстерьер + удобства)
               </h3>
-              <p className="text-[11px] text-[#A09A92]">Фото и удобства отображаются над списком номеров для гостей.</p>
+              <p className="text-[11px] text-[#A09A92]">Описание, фото и удобства отображаются над списком номеров для гостей.</p>
+
+              {/* Описание отеля */}
+              <div className="space-y-2">
+                <p className="text-[12px] font-semibold text-[#374151]">📝 Описание гостиницы:</p>
+                <textarea
+                  rows={3}
+                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60] resize-none"
+                  placeholder="Введите описание гостиницы для гостей..."
+                  value={hotelInfo?.description || ''}
+                  onChange={e => {
+                    const desc = e.target.value;
+                    setHotelInfo(prev => ({ ...(prev && typeof prev === 'object' ? prev : {}), description: desc }));
+                  }}
+                />
+              </div>
 
               {/* Загрузка фото */}
               <div className="space-y-2">
@@ -2148,12 +2163,14 @@ export default function App() {
       const parsed = JSON.parse(localStorage.getItem('ak_hotel_info') || 'null');
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         return {
+          description: typeof parsed.description === 'string' ? parsed.description : '',
           photos: Array.isArray(parsed.photos) ? parsed.photos : [],
           amenities: Array.isArray(parsed.amenities) ? parsed.amenities : []
         };
       }
     } catch(e) {}
     return {
+      description: 'Уютный отель «Aikol» расположен в городе Балыкчы на самом берегу Иссык-Куля. Комфортабельные номера, идеальный сервис, ухоженная территория и тёплая атмосфера для вашего идеального отдыха.',
       photos: [],
       amenities: [
         { icon: '🅿️', label: 'Бесплатная парковка' },
@@ -4212,10 +4229,13 @@ export default function App() {
             );
           })()}
 
-          {/* Heading */}
-          <div className="text-center py-2">
-            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">{t.roomsCatalogTitle}</h2>
-            <div className="mt-2 mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
+          {/* Секция: О нашей гостинице */}
+          <div className="text-center pt-3 pb-2 space-y-2">
+            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">О нашей гостинице</h2>
+            <div className="mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
+            <p className="text-[13px] text-[#6B7280] max-w-sm mx-auto px-4 leading-relaxed font-normal">
+              {hotelInfo?.description || 'Уютный отель «Aikol» расположен в городе Балыкчы на берегу Иссык-Куля. Комфортабельные номера, ухоженная территория и тихая атмосфера для идеального отдыха.'}
+            </p>
           </div>
 
           {/* Hotel Card — как карточка номера */}
@@ -4292,6 +4312,12 @@ export default function App() {
               </div>
             );
           })()}
+
+          {/* Секция: Номера гостиницы */}
+          <div className="text-center pt-5 pb-2">
+            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">{t.roomsCatalogTitle}</h2>
+            <div className="mt-2 mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
+          </div>
 
           {/* Room Cards */}
           {rooms.map((r, i) => {
