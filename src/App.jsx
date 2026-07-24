@@ -1411,19 +1411,60 @@ function AdminPanel({
                 />
               </div>
 
-              {/* Рейтинг отеля */}
+              {/* Плашки информации (3 карточки) */}
               <div className="space-y-2">
-                <p className="text-[12px] font-semibold text-[#374151]">⭐ Рейтинг отеля (например: ★ 4.9):</p>
-                <input
-                  type="text"
-                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60]"
-                  placeholder="★ 4.9"
-                  value={hotelInfo?.rating || '★ 4.9'}
-                  onChange={e => {
-                    const val = e.target.value;
-                    setHotelInfo(prev => ({ ...(prev && typeof prev === 'object' ? prev : {}), rating: val }));
-                  }}
-                />
+                <p className="text-[12px] font-semibold text-[#374151]">📊 Информационные плашки (3 блока на странице отеля):</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(() => {
+                    const defaultStats = [
+                      { label: 'Локация', value: 'Балыкчы' },
+                      { label: 'Иссык-Куль', value: '🏖️ рядом' },
+                      { label: 'Рейтинг', value: hotelInfo?.rating || '★ 4.9' }
+                    ];
+                    const stats = (Array.isArray(hotelInfo?.stats) && hotelInfo.stats.length === 3)
+                      ? hotelInfo.stats
+                      : defaultStats;
+
+                    return stats.map((st, idx) => (
+                      <div key={idx} className="bg-[#F8F6F3] p-2.5 rounded-[12px] border border-[#EDE9E3] space-y-1.5">
+                        <p className="text-[10px] font-bold text-[#0D6B60] uppercase">Плашка #{idx + 1}</p>
+                        <div>
+                          <label className="text-[10px] text-[#6B7280]">Значение (сверху):</label>
+                          <input
+                            type="text"
+                            className="w-full border border-[#E8E4DF] rounded-[8px] px-2 py-1 text-[11px] font-bold text-[#0D6B60]"
+                            value={st.value}
+                            onChange={e => {
+                              const newStats = [...stats];
+                              newStats[idx] = { ...newStats[idx], value: e.target.value };
+                              setHotelInfo(prev => ({
+                                ...(prev && typeof prev === 'object' ? prev : {}),
+                                stats: newStats,
+                                rating: idx === 2 ? e.target.value : (prev?.rating || '★ 4.9')
+                              }));
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-[#6B7280]">Подпись (снизу):</label>
+                          <input
+                            type="text"
+                            className="w-full border border-[#E8E4DF] rounded-[8px] px-2 py-1 text-[11px] text-[#374151]"
+                            value={st.label}
+                            onChange={e => {
+                              const newStats = [...stats];
+                              newStats[idx] = { ...newStats[idx], label: e.target.value };
+                              setHotelInfo(prev => ({
+                                ...(prev && typeof prev === 'object' ? prev : {}),
+                                stats: newStats
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
 
               {/* Загрузка фото */}
@@ -2174,6 +2215,11 @@ export default function App() {
   const [hotelAddress, setHotelAddress] = useState(() => localStorage.getItem('ak_hotel_address') || 'Балыкчы, ул. Восточная 3');
   const [welcomeBgUrl, setWelcomeBgUrl] = useState(() => localStorage.getItem('ak_welcome_bg') || '/issyk_kul_bg2.png');
   const [hotelInfo, setHotelInfo] = useState(() => {
+    const defaultStats = [
+      { label: 'Локация', value: 'Балыкчы' },
+      { label: 'Иссык-Куль', value: '🏖️ рядом' },
+      { label: 'Рейтинг', value: '★ 4.9' }
+    ];
     try {
       const parsed = JSON.parse(localStorage.getItem('ak_hotel_info') || 'null');
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
@@ -2181,7 +2227,8 @@ export default function App() {
           description: typeof parsed.description === 'string' ? parsed.description : '',
           rating: typeof parsed.rating === 'string' ? parsed.rating : '★ 4.9',
           photos: Array.isArray(parsed.photos) ? parsed.photos : [],
-          amenities: Array.isArray(parsed.amenities) ? parsed.amenities : []
+          amenities: Array.isArray(parsed.amenities) ? parsed.amenities : [],
+          stats: Array.isArray(parsed.stats) && parsed.stats.length === 3 ? parsed.stats : defaultStats
         };
       }
     } catch(e) {}
@@ -2196,7 +2243,8 @@ export default function App() {
         { icon: '🍽️', label: 'Кухня для гостей' },
         { icon: '🌿', label: 'Зелёный двор' },
         { icon: '🛡️', label: 'Видеонаблюдение' },
-      ]
+      ],
+      stats: defaultStats
     };
   });
   const [welcomeTexts, setWelcomeTexts] = useState(() => {
@@ -3357,18 +3405,27 @@ export default function App() {
           <div className="flex-1 px-4 py-5 space-y-5 overflow-y-auto">
 
             {/* Stats row */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
+            {(() => {
+              const defaultStats = [
                 { label: 'Локация', value: 'Балыкчы' },
                 { label: 'Иссык-Куль', value: '🏖️ рядом' },
                 { label: 'Рейтинг', value: safeInfo.rating || '★ 4.9' }
-              ].map(s => (
-                <div key={s.label} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 text-center">
-                  <p className="text-[13px] font-bold text-[#0D6B60]">{s.value}</p>
-                  <p className="text-[10px] text-[#A09A92] font-medium mt-0.5">{s.label}</p>
+              ];
+              const statsList = (Array.isArray(safeInfo.stats) && safeInfo.stats.length === 3)
+                ? safeInfo.stats
+                : defaultStats;
+
+              return (
+                <div className="grid grid-cols-3 gap-3">
+                  {statsList.map((s, idx) => (
+                    <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 text-center shadow-xs">
+                      <p className="text-[13px] font-bold text-[#0D6B60] truncate">{s.value}</p>
+                      <p className="text-[10px] text-[#A09A92] font-medium mt-0.5 truncate">{s.label}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
             {/* Amenities */}
             {hAmenities.length > 0 && (
