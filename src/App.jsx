@@ -1411,6 +1411,21 @@ function AdminPanel({
                 />
               </div>
 
+              {/* Рейтинг отеля */}
+              <div className="space-y-2">
+                <p className="text-[12px] font-semibold text-[#374151]">⭐ Рейтинг отеля (например: ★ 4.9):</p>
+                <input
+                  type="text"
+                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60]"
+                  placeholder="★ 4.9"
+                  value={hotelInfo?.rating || '★ 4.9'}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setHotelInfo(prev => ({ ...(prev && typeof prev === 'object' ? prev : {}), rating: val }));
+                  }}
+                />
+              </div>
+
               {/* Загрузка фото */}
               <div className="space-y-2">
                 <p className="text-[12px] font-semibold text-[#374151]">📷 Фотографии экстерьера:</p>
@@ -2164,6 +2179,7 @@ export default function App() {
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         return {
           description: typeof parsed.description === 'string' ? parsed.description : '',
+          rating: typeof parsed.rating === 'string' ? parsed.rating : '★ 4.9',
           photos: Array.isArray(parsed.photos) ? parsed.photos : [],
           amenities: Array.isArray(parsed.amenities) ? parsed.amenities : []
         };
@@ -2171,6 +2187,7 @@ export default function App() {
     } catch(e) {}
     return {
       description: 'Уютный отель «Aikol» расположен в городе Балыкчы на самом берегу Иссык-Куля. Комфортабельные номера, идеальный сервис, ухоженная территория и тёплая атмосфера для вашего идеального отдыха.',
+      rating: '★ 4.9',
       photos: [],
       amenities: [
         { icon: '🅿️', label: 'Бесплатная парковка' },
@@ -3344,7 +3361,7 @@ export default function App() {
               {[
                 { label: 'Локация', value: 'Балыкчы' },
                 { label: 'Иссык-Куль', value: '🏖️ рядом' },
-                { label: 'Рейтинг', value: '★ 4.9' }
+                { label: 'Рейтинг', value: safeInfo.rating || '★ 4.9' }
               ].map(s => (
                 <div key={s.label} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 text-center">
                   <p className="text-[13px] font-bold text-[#0D6B60]">{s.value}</p>
@@ -4229,13 +4246,10 @@ export default function App() {
             );
           })()}
 
-          {/* Секция: О нашей гостинице */}
-          <div className="text-center pt-3 pb-2 space-y-2">
-            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">О нашей гостинице</h2>
+          {/* Секция: О гостинице */}
+          <div className="text-center pt-3 pb-2 space-y-1">
+            <h2 className="font-display text-[26px] font-semibold text-[#0F0F0F] tracking-tight">О гостинице</h2>
             <div className="mx-auto w-10 h-[2px] rounded-full bg-[#0D6B60]" />
-            <p className="text-[13px] text-[#6B7280] max-w-sm mx-auto px-4 leading-relaxed font-normal">
-              {hotelInfo?.description || 'Уютный отель «Aikol» расположен в городе Балыкчы на берегу Иссык-Куля. Комфортабельные номера, ухоженная территория и тихая атмосфера для идеального отдыха.'}
-            </p>
           </div>
 
           {/* Hotel Card — идентичная карточка как у номера */}
@@ -4288,12 +4302,12 @@ export default function App() {
                     </>
                   )}
 
-                  {/* Верхняя правая плашка (как у номера цена) */}
+                  {/* Верхняя правая плашка */}
                   <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10">
                     ⭐ Отель <span className="font-normal text-[#6B7280]">Балыкчы</span>
                   </div>
 
-                  {/* Нижняя левая плашка статуса (как у номера Свободно) */}
+                  {/* Нижняя левая плашка статуса */}
                   <div className="absolute bottom-3 left-3 bg-green-500/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-200 animate-pulse" /> Открыто для гостей
                   </div>
@@ -4307,20 +4321,30 @@ export default function App() {
                       <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {hotelAddress}</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-[11px] text-[#0D6B60] font-semibold">★ 4.9 Рейтинг</p>
+                      <p className="text-[11px] text-[#0D6B60] font-semibold">{safeInfo.rating || '★ 4.9'}</p>
                       <p className="text-[11px] text-[#6B7280] font-medium">Иссык-Куль</p>
                     </div>
                   </div>
 
-                  {/* Удобства отеля в виде стандартных чипов */}
+                  {/* Описание гостиницы внутри карточки */}
+                  {safeInfo.description && (
+                    <p className="text-[12.5px] text-[#4B5563] leading-relaxed border-t border-[#F3F0EC] pt-2.5">
+                      {safeInfo.description}
+                    </p>
+                  )}
+
+                  {/* Удобства отеля в виде чипов */}
                   {hAmenities.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {hAmenities.map((a, i) => (
-                        <span key={i} className="chip flex items-center gap-1">
-                          <span>{a.icon}</span>
-                          <span>{a.label}</span>
-                        </span>
-                      ))}
+                    <div className="space-y-1.5 pt-1">
+                      <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Удобства:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {hAmenities.map((a, i) => (
+                          <span key={i} className="chip flex items-center gap-1">
+                            <span>{a.icon}</span>
+                            <span>{a.label}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
