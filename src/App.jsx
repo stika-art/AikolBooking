@@ -4238,7 +4238,7 @@ export default function App() {
             </p>
           </div>
 
-          {/* Hotel Card — как карточка номера */}
+          {/* Hotel Card — идентичная карточка как у номера */}
           {(() => {
             const safeInfo = (hotelInfo && typeof hotelInfo === 'object') ? hotelInfo : {};
             const hPhotos = Array.isArray(safeInfo.photos) ? safeInfo.photos : [];
@@ -4246,9 +4246,10 @@ export default function App() {
             if (hPhotos.length === 0 && hAmenities.length === 0) return null;
             const hCardIdx = hotelImgIndex;
             const currentHCardPhoto = hPhotos[hCardIdx] || hPhotos[0] || '';
+
             return (
               <div
-                className="room-card animate-up cursor-pointer active:scale-[0.98] transition-transform"
+                className="room-card animate-up cursor-pointer active:scale-[0.98] transition-transform mb-6"
                 onClick={() => { setViewHotel(true); setHotelImgIndex(0); }}
               >
                 {/* Фото */}
@@ -4258,38 +4259,47 @@ export default function App() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-7xl">🏨</div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-                  {/* Стрелки листалки */}
+                  {/* Стрелки переключения фото */}
                   {hPhotos.length > 1 && (
                     <>
-                      <button type="button"
-                        onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev === 0 ? hPhotos.length - 1 : prev - 1)); }}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHotelImgIndex(prev => (prev === 0 ? hPhotos.length - 1 : prev - 1));
+                        }}
                         className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/70 transition-all z-10">
                         <ChevronLeft size={20} />
                       </button>
-                      <button type="button"
-                        onClick={(e) => { e.stopPropagation(); setHotelImgIndex(prev => (prev + 1) % hPhotos.length); }}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHotelImgIndex(prev => ((prev + 1) % hPhotos.length));
+                        }}
                         className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-black/70 transition-all z-10">
                         <ChevronRight size={20} />
                       </button>
+
                       <div className="absolute bottom-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm z-10">
                         {hCardIdx + 1} / {hPhotos.length}
                       </div>
                     </>
                   )}
 
-                  {/* Бейдж «Гостиница» */}
-                  <div className="absolute top-3 left-3 bg-[#0D6B60]/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
-                    🏨 Гостиница
+                  {/* Верхняя правая плашка (как у номера цена) */}
+                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[12px] font-black px-3 py-1.5 rounded-full shadow-md z-10">
+                    ⭐ Отель <span className="font-normal text-[#6B7280]">Балыкчы</span>
                   </div>
-                  {/* «Подробнее» — правый верхний угол */}
-                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-[#0F0F0F] text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md z-10">
-                    Подробнее →
+
+                  {/* Нижняя левая плашка статуса (как у номера Свободно) */}
+                  <div className="absolute bottom-3 left-3 bg-green-500/90 text-white text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-200 animate-pulse" /> Открыто для гостей
                   </div>
                 </div>
 
-                {/* Текстовый блок */}
+                {/* Контент под фото */}
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -4297,14 +4307,19 @@ export default function App() {
                       <p className="text-[12px] text-[#6B7280] mt-0.5">📍 {hotelAddress}</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-[11px] text-[#0D6B60] font-semibold">★ 4.9</p>
-                      <p className="text-[11px] text-[#6B7280]">🏖️ Иссык-Куль</p>
+                      <p className="text-[11px] text-[#0D6B60] font-semibold">★ 4.9 Рейтинг</p>
+                      <p className="text-[11px] text-[#6B7280] font-medium">Иссык-Куль</p>
                     </div>
                   </div>
+
+                  {/* Удобства отеля в виде стандартных чипов */}
                   {hAmenities.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {hAmenities.map((a, i) => (
-                        <span key={i} className="chip flex items-center gap-1">{a.icon} {a.label}</span>
+                        <span key={i} className="chip flex items-center gap-1">
+                          <span>{a.icon}</span>
+                          <span>{a.label}</span>
+                        </span>
                       ))}
                     </div>
                   )}
