@@ -3444,11 +3444,11 @@ export default function App() {
                 : defaultStats;
 
               return (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
                   {statsList.map((s, idx) => (
-                    <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[14px] p-3 text-center shadow-xs">
-                      <p className="text-[13px] font-bold text-[#0D6B60] truncate">{s.value}</p>
-                      <p className="text-[10px] text-[#A09A92] font-medium mt-0.5 truncate">{s.label}</p>
+                    <div key={idx} className="bg-white border border-[#EDE9E3] rounded-[14px] p-2.5 sm:p-3 text-center shadow-xs flex flex-col justify-center min-h-[58px]">
+                      <p className="text-[11.5px] sm:text-[13px] font-bold text-[#0D6B60] leading-tight break-words">{s.value}</p>
+                      <p className="text-[9.5px] sm:text-[10px] text-[#A09A92] font-medium mt-1 leading-tight break-words">{s.label}</p>
                     </div>
                   ))}
                 </div>
