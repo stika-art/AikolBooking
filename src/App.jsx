@@ -534,6 +534,7 @@ function AdminPanel({
   const [bgStatus, setBgStatus] = useState('');
   const [wtStatus, setWtStatus] = useState('');
   const [localWelcomeTexts, setLocalWelcomeTexts] = useState(() => welcomeTexts || {});
+  const [amenitiesText, setAmenitiesText] = useState(null);
 
   // Сброс пароля через Telegram
   const [showResetModal, setShowResetModal] = useState(false);
@@ -1538,19 +1539,35 @@ function AdminPanel({
               <div className="space-y-2">
                 <p className="text-[12px] font-semibold text-[#374151]">✅ Удобства (каждое с новой строки, формат: 🅿️ Парковка):</p>
                 <textarea
-                  rows={5}
+                  rows={6}
                   className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60] resize-none font-mono"
                   placeholder={"🅿️ Парковка\n🏖️ Выход к озеру\n📶 Wi-Fi"}
-                  value={(hotelInfo?.amenities || []).map(a => `${a.icon} ${a.label}`).join('\n')}
+                  value={
+                    amenitiesText !== null
+                      ? amenitiesText
+                      : (hotelInfo?.amenities || []).map(a => `${a.icon || '✅'} ${a.label || ''}`.trim()).join('\n')
+                  }
                   onChange={e => {
-                    const amenities = e.target.value.split('\n').map(line => {
-                      const m = line.match(/^(\S+)\s+(.+)$/);
-                      return m ? { icon: m[1], label: m[2] } : null;
+                    const val = e.target.value;
+                    setAmenitiesText(val);
+
+                    const parsed = val.split('\n').map(line => {
+                      const trimmed = line.trim();
+                      if (!trimmed) return null;
+                      const m = trimmed.match(/^(\S+)\s+(.+)$/);
+                      if (m) {
+                        return { icon: m[1], label: m[2] };
+                      }
+                      return { icon: '✅', label: trimmed };
                     }).filter(Boolean);
-                    setHotelInfo({ ...(hotelInfo || {}), amenities });
+
+                    setHotelInfo(prev => ({
+                      ...(prev && typeof prev === 'object' ? prev : {}),
+                      amenities: parsed
+                    }));
                   }}
                 />
-                <p className="text-[10px] text-[#A09A92]">Первый символ — эмодзи-иконка, затем пробел и название.</p>
+                <p className="text-[10px] text-[#A09A92]">Каждое удобство с новой строки (с эмодзи или просто текстом).</p>
               </div>
             </div>
 
