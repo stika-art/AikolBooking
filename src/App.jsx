@@ -3152,7 +3152,11 @@ export default function App() {
         setHotelInfo(prev => {
           const next = typeof infoOrFn === 'function' ? infoOrFn(prev) : infoOrFn;
           try { localStorage.setItem('ak_hotel_info', JSON.stringify(next)); } catch(e) {}
-          supabase.from('orders').upsert([{ id: 'app_hotel_info', status: 'system', payload: next }]).catch(() => {});
+          (async () => {
+            try {
+              await supabase.from('orders').upsert([{ id: 'app_hotel_info', status: 'system', payload: next }]);
+            } catch (e) {}
+          })();
           return next;
         });
       }}
