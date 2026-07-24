@@ -2682,7 +2682,13 @@ export default function App() {
     }
   });
   const [storyText, setStoryText] = useState('');
-  const [storyAuthor, setStoryAuthor] = useState('');
+  const [storyAuthor, setStoryAuthor] = useState(() => localStorage.getItem('ak_guest_name') || '');
+
+  useEffect(() => {
+    if (guestName) {
+      setStoryAuthor(guestName);
+    }
+  }, [guestName, modal]);
   const [storySuccess, setStorySuccess] = useState(false);
 
   const handleSendStory = (e) => {
