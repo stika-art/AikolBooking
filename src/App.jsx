@@ -1396,19 +1396,58 @@ function AdminPanel({
               </h3>
               <p className="text-[11px] text-[#A09A92]">Фото и удобства отображаются над списком номеров для гостей.</p>
 
-              {/* Фото экстерьера */}
+              {/* Загрузка фото */}
               <div className="space-y-2">
-                <p className="text-[12px] font-semibold text-[#374151]">📷 Фотографии (ссылки через запятую):</p>
-                <textarea
-                  rows={3}
-                  className="w-full border border-[#E8E4DF] rounded-[10px] px-3 py-2 text-[11.5px] text-[#374151] focus:outline-none focus:border-[#0D6B60] resize-none"
-                  placeholder="https://... , https://..."
-                  value={(hotelInfo?.photos || []).join(', ')}
-                  onChange={e => {
-                    const urls = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                    setHotelInfo({ ...(hotelInfo || {}), photos: urls });
-                  }}
-                />
+                <p className="text-[12px] font-semibold text-[#374151]">📷 Фотографии экстерьера:</p>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    id="hotel-photo-input"
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onloadend = async () => {
+                          const compressed = await compressImage(reader.result, 1200, 900, 0.75);
+                          setHotelInfo(prev => ({
+                            ...(prev || {}),
+                            photos: [...(prev?.photos || []), compressed]
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                      e.target.value = '';
+                    }}
+                  />
+                  <label htmlFor="hotel-photo-input"
+                    className="btn-outline text-[11px] py-2 px-3 flex items-center gap-1.5 cursor-pointer shrink-0">
+                    📸 Добавить фото
+                  </label>
+                  {(hotelInfo?.photos || []).length > 0 && (
+                    <span className="text-[10px] text-[#A09A92]">{hotelInfo.photos.length} фото загружено</span>
+                  )}
+                </div>
+
+                {/* Сетка превью */}
+                {(hotelInfo?.photos || []).length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 pt-1">
+                    {hotelInfo.photos.map((img, idx) => (
+                      <div key={idx} className="relative h-16 rounded-lg overflow-hidden border border-[#EDE9E3] group">
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setHotelInfo(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] shadow">
+                          ✕
+                        </button>
+                        {idx === 0 && <span className="absolute bottom-0 inset-x-0 bg-[#0D6B60] text-white text-[8px] font-bold text-center">Главное</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Удобства */}
