@@ -4458,7 +4458,7 @@ export default function App() {
                 {/* Фото */}
                 <div className="relative h-[185px] overflow-hidden bg-[#F6F4F1] group">
                   {currentHCardPhoto ? (
-                    <img src={currentHCardPhoto} alt="Гостиница Aikol" onClick={(e) => { e.stopPropagation(); setLightboxData({ images: hPhotos, index: hCardIdx }); }} className="w-full h-full object-cover transition-all duration-300 cursor-zoom-in" />
+                    <img src={currentHCardPhoto} alt="Гостиница Aikol" className="w-full h-full object-cover transition-all duration-300" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-7xl">🏨</div>
                   )}
@@ -4564,11 +4564,7 @@ export default function App() {
                 <img 
                   src={currentCardPhoto} 
                   alt={r.name} 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxData({ images: roomPhotos, index: cardIdx });
-                  }}
-                  className={`w-full h-full object-cover transition-all duration-300 cursor-zoom-in ${occupied ? 'brightness-75' : ''}`}
+                  className={`w-full h-full object-cover transition-all duration-300 ${occupied ? 'brightness-75' : ''}`}
                 />
 
                 {/* Слайдер фото для карточки номера */}
