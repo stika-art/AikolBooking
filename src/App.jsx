@@ -5116,16 +5116,6 @@ export default function App() {
                 ) : (
                   <form onSubmit={handleSendStory} className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[#6B7280] uppercase">Ваше имя</label>
-                      <input 
-                        type="text" 
-                        className="input-soft text-[12px] py-2" 
-                        placeholder="Например, Александр"
-                        value={storyAuthor}
-                        onChange={e => setStoryAuthor(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
                       <label className="text-[10px] font-bold text-[#6B7280] uppercase">История или приключение</label>
                       <textarea
                         className="input-soft text-[12px] min-h-[90px] resize-none"
