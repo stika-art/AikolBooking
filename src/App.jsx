@@ -3591,7 +3591,15 @@ export default function App() {
           </div>
         </div>
 
-
+        {/* Глобальный увеличенный полноэкранный Lightbox для всех фото */}
+        {lightboxData && (
+          <FullscreenGalleryModal 
+            images={lightboxData.images} 
+            currentIndex={lightboxData.index} 
+            onClose={() => setLightboxData(null)} 
+            onIndexChange={(newIdx) => setLightboxData(prev => (prev ? { ...prev, index: newIdx } : null))} 
+          />
+        )}
       </div>
     );
   }
@@ -3825,6 +3833,15 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+      {/* Глобальный увеличенный полноэкранный Lightbox для всех фото */}
+      {lightboxData && (
+        <FullscreenGalleryModal 
+          images={lightboxData.images} 
+          currentIndex={lightboxData.index} 
+          onClose={() => setLightboxData(null)} 
+          onIndexChange={(newIdx) => setLightboxData(prev => (prev ? { ...prev, index: newIdx } : null))} 
+        />
       )}
     </div>
   );
